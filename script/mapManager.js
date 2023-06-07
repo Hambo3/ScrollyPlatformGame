@@ -1,7 +1,7 @@
 class MapManger{
 
     constructor(ctx, md, b){
-        this.mapData = Util.UnpackMap(md.data);
+        this.mapData = md.data;//Util.UnpackMap(md.data);
         
         this.offset = new Vector2();
         this.planSize = new Vector2(md.size.world.width, md.size.world.height);
@@ -27,13 +27,33 @@ class MapManger{
         this.rend = new Render(this.tileCanvas.ctx);
     }
 
-    Init(reset){
+    get Pos(){
+        return {l:this.offset.x, r:this.offset.x+(this.screenSize.x*this.scale)};
+    }
+
+    Init(reset, data){
         if(reset){            
             this.rend.Box(0,0,this.mapSize.x,this.mapSize.y);
         }
+        this.mapData = data;
         this.TileInit();
     }
     
+    // TileInit(){
+    //     for (let r=0; r<this.planSize.y; r++){
+    //         var a = new Array(this.planSize.x); for (let i=0; i<this.planSize.x; i++) a[i] = 0;
+    //         this.mapData.push(a);
+    //     }
+    //     var x = 0;
+    //     var y = 20;//parseInt(this.planSize.y/3);
+    //     do{
+    //         this.mapData[y][x] = 6;
+    //         x++;
+    //     }while(x<this.planSize.x);
+
+    //     this.xTileInit();
+    // }
+
     TileInit(){
         var p;
         var col = this.planSize.x;
@@ -59,7 +79,6 @@ class MapManger{
         } catch (error) {
             //console.log("r:"+r+ " c:"+c);
         }
-
     }
 
     Zoom(rate){
@@ -159,8 +178,4 @@ class MapManger{
         return this.mapData[r][c];
     } 
 
-    //draw stuff
-    Skid(x, y, col,d){
-        this.rend.Box(x,y,d|3,d|3, col);
-    }
 }

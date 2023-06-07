@@ -172,10 +172,11 @@ var Util = {
 
                 last = sp;//m[r][c];
             }
+            if(l > 0){
+                objs.push({x:c-l,y:r,w:l});
+            }            
         }
-        if(l > 0){
-            objs.push({x:c-l,y:r-1,w:l});
-        }
+
 
         for (var i = 0; i < objs.length; i++) {
             var t = [];

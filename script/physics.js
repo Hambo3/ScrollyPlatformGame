@@ -29,7 +29,7 @@ class World{
                 //var collisionInfo = null; 
                 objects[i].collisionInfo = [];           
                 for(var j=i+1; j<l; j++){
-                    var collisionInfo = {D:null,N:null,S:null,E:null};  
+                    var collisionInfo = {D:null,N:null,S:null,E:null,I:null};  
                     // Test bounds
                     var p = this.boundTest(objects[i], objects[j]);
                     if(p){
@@ -69,12 +69,13 @@ class World{
     }
 
     // Collision info setter
-    setInfo (collision, D, N, S)
+    setInfo (collision, D, N, S,I)
     {
         collision.D = D; // depth
         collision.N = N; // normal
         collision.S = S; // start
         collision.E = this.add(S, this.scale(N, D)); // end
+        collision.I = I;
     }
 
     // Move a shape along a vector
@@ -244,12 +245,16 @@ class World{
                     if(collisionInfoR1.D < collisionInfoR2.D){
                         this.setInfo(collisionInfo, collisionInfoR1.D, collisionInfoR1.N, 
                             this.substract(collisionInfoR1.S, 
-                                this.scale(collisionInfoR1.N, collisionInfoR1.D)));
+                                this.scale(collisionInfoR1.N, collisionInfoR1.D))
+                                ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M)
+                                );
                     }
                     
                     else {
                         this.setInfo(collisionInfo, collisionInfoR2.D, 
-                            this.scale(collisionInfoR2.N, -1), collisionInfoR2.S);
+                            this.scale(collisionInfoR2.N, -1), collisionInfoR2.S
+                            ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M)
+                            );
                     }
                 }
             }

@@ -272,7 +272,9 @@ class Player extends Rectangle{
 
     Update(dt)
     {   
+
         if(this.collisionInfo.length > 0){
+            DEBUG.Print("I:", this.collisionInfo[0].I);
             if(this.input.Left() || this.input.Right()){
                 if(this.input.Left()){
                     this.V.x -=2;
@@ -310,9 +312,8 @@ class Player extends Rectangle{
 
     Render(x,y)
     {
-        DEBUG.Print("Velocity X:",this.V.x);
-        DEBUG.Print("Velocity Y:",this.V.y);
         super.Render(x,y);
+        DEBUG.Print("L:", this.V.Length());        
     }
 }
 
@@ -335,5 +336,41 @@ class Shot extends Circle{
     Render(x,y)
     {
         super.Render(x,y);
+    }
+}
+
+class Chaser {
+
+    constructor(target, offset)
+    {        
+        this.target = target;
+        this.pos = new Vector2(0,0);
+        this.offset = offset;
+        this.timer = new Timer(2);
+        this.velocityMin = [32,48];
+        this.rate = 1;
+
+        this.enabled = 1;
+        this.type = C.ASSETS.NONE;
+    }
+
+    Update(dt)
+    {   var p = MAP.Pos;
+        //this.pos.x = this.target.C.x + this.offset.x;
+        //this.pos.y = this.target.C.y + this.offset.y;
+        this.timer.Update(dt);
+
+        // if(!this.timer.enabled){
+        //     GAME.Launch(Util.RndI(p.l+64, p.r-64), 0, 
+        //         {x:Util.RndI(-32, 32),y:0}
+        //         );
+
+        //     this.timer.Set(this.rate);
+        // }   
+
+    }
+
+    Render(x,y)
+    {
     }
 }
