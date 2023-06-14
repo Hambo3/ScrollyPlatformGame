@@ -150,13 +150,14 @@ var Util = {
         }
         return mapArr;
     },
-    UnpackWorldObjects: function(m, o){
+    UnpackWorldObjects: function(m){
         var objs = [];
         for (var r = 0; r < m.length; r++) {
             var last = {};
             var l = 0;
+            var sp = 0;
             for (var c = 0; c < m[r].length; c++) {
-                var sp = GAMEOBJ[m[r][c]];
+                sp = GAMEOBJ[m[r][c]];
                 if(sp.s)
                 {
                     l++;
@@ -165,15 +166,15 @@ var Util = {
                 {                    
                     if(last.s)
                     {
-                        objs.push({x:c-l,y:r,w:l});
+                        objs.push({x:c-l,y:r,w:l,s:sp.id,d:last.dm});
                     }
                     l = 0;
                 }
 
-                last = sp;//m[r][c];
+                last = sp;
             }
             if(l > 0){
-                objs.push({x:c-l,y:r,w:l});
+                objs.push({x:c-l,y:r,w:l,s:sp.id,d:sp.dm});
             }            
         }
 
@@ -202,141 +203,9 @@ var Util = {
                 }
             }
         }
-        var s = "";
-        for (var i = 0; i < map.length; i++) {
-            s+=map[i]+","           
-        }
-
         return map;
-    }
+    }    
 
-}
-
-var GfxUtil = {
-    hexToRgb: function(color) {
-		var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-		color = color.replace(shorthandRegex, function(m, r, g, b) {
-			return r + r + g + g + b + b;
-		});
-
-		var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
-		return result ? {
-			r: parseInt(result[1], 16),
-			g: parseInt(result[2], 16),
-			b: parseInt(result[3], 16)
-		} : {
-			r: 0,
-			g: 0,
-			b: 0
-		};
-    },
-    rgbToHsl: function(r, g, b){
-        r /= 255, g /= 255, b /= 255;
-        var max = Math.max(r, g, b), min = Math.min(r, g, b);
-        var h, s, l = (max + min) / 2;
-      
-        if(max == min){
-          h = s = 0; // achromatic
-        }else{
-          var d = max - min;
-          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-          switch(max){
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-          }
-          h /= 6;
-        }
-      
-        return({
-          h:h,
-          s:s,
-          l:l,
-        });
-    }, 
-    hue2rgb: function(p, q, t){
-            if(t < 0) t += 1;
-            if(t > 1) t -= 1;
-            if(t < 1/6) return p + (q - p) * 6 * t;
-            if(t < 1/2) return q;
-            if(t < 2/3) return p + (q - p) * (2/3 - t) * 6;
-            return p;
-    }, 
-    hslToRgb: function(h, s, l){
-        var r, g, b;
-      
-        if(s == 0){
-          r = g = b = l; // achromatic
-        }else{      
-          var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-          var p = 2 * l - q;
-          r = GfxUtil.hue2rgb(p, q, h + 1/3);
-          g = GfxUtil.hue2rgb(p, q, h);
-          b = GfxUtil.hue2rgb(p, q, h - 1/3);
-        }
-      
-        return({
-          r:Math.round(r * 255),
-          g:Math.round(g * 255),
-          b:Math.round(b * 255),
-        });
-    },
-    HSLReplace: function(srcImg, colInfo){
-		// create hidden canvas (using image dimensions)
-        var tol = 5;
-		var canvas = document.createElement("canvas");
-		canvas.width = srcImg.width;
-		canvas.height = srcImg.height;
-
-		var ctx = canvas.getContext("2d");
-		ctx.imageSmoothingEnabled = false;
-		ctx.drawImage(srcImg,0,0);
-
-		var imageData = ctx.getImageData(0,0, srcImg.width, srcImg.height);
-
-		var data = imageData.data;
-
-        for(var j=0; j < colInfo.length; j++){
-            var srcHue = colInfo[j].src;
-            var newHue = colInfo[j].hue;
-            var newLpc = colInfo[j].lpc;
-            for(var i=0; i < data.length; i+=4){
-                red = data[i+0];
-                green = data[i+1];
-                blue = data[i+2];
-                alpha = data[i+3];
-
-                // skip transparent/semiTransparent pixels
-                if(alpha > 230)
-                {
-                    var hsl = GfxUtil.rgbToHsl(red,green,blue);
-                    var hue = parseInt(hsl.h*360);
-                    //var sat = parseInt(hsl.s*100);
-                    //var lgt = parseInt(hsl.l*100);
-
-                    if(hue > (srcHue-tol) && hue < (srcHue+tol) )
-                    {
-                        var newRgb = GfxUtil.hslToRgb(
-                            newHue ? newHue/360 : hsl.h, 
-                            hsl.s, 
-                            newLpc ? hsl.l*newLpc : hsl.l);
-                        data[i+0]=newRgb.r;
-                        data[i+1]=newRgb.g;
-                        data[i+2]=newRgb.b;
-                        data[i+3]=alpha;
-                    }
-                }
-
-            }
-        }
-
-        ctx.putImageData(imageData, 0, 0);        
-
-		// replace image source with canvas data
-		var destImg = new Image();
-        destImg.src = canvas.toDataURL();
-        return destImg;
-    }
 }
 
 // a v simple object pooler
@@ -367,9 +236,9 @@ var ObjectPool = function () {
                 return list.filter(l => l.enabled);
             }
         },
-        GetCollectable: function(){
-            return list.filter(l => l.enabled && l.collectable);
-        },
+        // GetCollectable: function(){
+        //     return list.filter(l => l.enabled && l.collectable);
+        // },
         Count: function(all, type){
             if(type){
                 return (all) ? list.filter(l => type.indexOf(l.type) != -1).length 

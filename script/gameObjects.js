@@ -159,8 +159,25 @@ class RigidShape{
                 ];
         this.collisionInfo = [];
         PHYSICS.computeRectNormals(this);
+    }
+}
+
+class GameObject extends RigidShape{
+
+    constructor(C, mass, F, R, T, B, W, H)
+    {        
+        super(C, mass, F, R, T, B, W, H);
 
         this.frame = 0; 
+        this.enabled = 1;    
+        this.size = 1;
+        this.type;
+        this.hits = null;
+        this.dmgIgnore = [];
+        this.isStatic = 0;
+        this.spriteId;
+        this.body;
+        this.damage = 1;
     }
 
     Update(dt)
@@ -178,7 +195,8 @@ class RigidShape{
     }
 }
 
-class Circle extends RigidShape{
+
+class Circle extends GameObject{
 
     constructor(type, sprId, center, radius, mass, friction, restitution, isStatic)
     {        
@@ -187,14 +205,35 @@ class Circle extends RigidShape{
         this.size = 1;
         this.type = type;
         this.hits = null;//[C.ASSETS.GROUND,C.ASSETS.WALL,C.ASSETS.BLOCK];
+        this.dmgIgnore = [];
         this.isStatic = isStatic;
 
         this.spriteId = sprId;
         this.body = GAMEOBJ.find(o=>o.id == sprId).src;
+        this.damage = 1;
+    }
+
+    Set(C, sprId){
+        this.spriteId = sprId;
+        this.body = GAMEOBJ.find(o=>o.id == sprId).src;
+        this.damage = 1;
+        this.C = C;
+        this.enabled = 1;
     }
 
     Update(dt)
     {   
+        if(this.damage > 0 && this.collisionInfo.length != 0){ 
+            for(var i=0;i<this.collisionInfo.length;i++){
+                var c = this.collisionInfo[i];                
+                if(this.dmgIgnore.indexOf(c.T) == -1){
+                    if(c.I>0){
+                        this.damage -= c.I;
+                        this.enabled = this.damage > 0;
+                    }                      
+                }              
+            }
+        }
         super.Update(dt);
     }
 
@@ -205,21 +244,41 @@ class Circle extends RigidShape{
     }
 }
 
-class StaticBody extends RigidShape{
+class StaticBody extends GameObject{
 
-    constructor(tiles, type, center, width, height, mass, friction, restitution, isStatic)
+    constructor(tiles, type, center, width, height, mass, friction, restitution, dmg)
     {        
         super(center, mass, friction, restitution, 1, Math.hypot(width, height)/2, width, height);
         this.enabled = 1;
         this.size = 1;
         this.type = type;
         this.hits = null;
-        this.isStatic = isStatic;
+        this.dmgIgnore = [C.ASSETS.PLAYER];
+        this.isStatic = 1;        
+        this.damage = dmg|0;
+
         this.tiles = tiles;
     }
 
     Update(dt)
     {
+        if(this.damage > 0 && this.collisionInfo.length != 0){ 
+            for(var i=0;i<this.collisionInfo.length;i++){
+                var c = this.collisionInfo[i];                
+                if(this.dmgIgnore.indexOf(c.T) == -1){
+                    if(c.I>0){
+                        this.damage -= c.I;
+                         if(this.damage<=0){
+                            this.enabled = 0;
+                            
+                            MAP.Tile(this.tiles);
+                            GAME.PlatformBreak(this.tiles);
+                         }
+                    }                      
+                }              
+            }
+        }
+        super.Update(dt);
     }
 
     Render(x,y)
@@ -229,7 +288,7 @@ class StaticBody extends RigidShape{
     }
 }
 
-class Rectangle extends RigidShape{
+class Rectangle extends GameObject{
 
     constructor(type, sprId, center, width, height, mass, friction, restitution, isStatic)
     {        
@@ -239,14 +298,35 @@ class Rectangle extends RigidShape{
         this.size = 1;
         this.type = type;
         this.hits = null;
+        this.dmgIgnore = [];
         this.isStatic = isStatic;
         this.spriteId = sprId;
         this.body = GAMEOBJ.find(o=>o.id == sprId).src;
-        //this.src = SPRITES.Get(s.src, 0);
+        this.damage = 1;
+    }
+
+    Set(C, sprId){
+        this.spriteId = sprId;
+        this.body = GAMEOBJ.find(o=>o.id == sprId).src;
+        this.damage = 1;
+        this.C = C;
+        this.enabled = 1;
     }
 
     Update(dt)
-    {
+    {        
+        if(this.damage > 0 && this.collisionInfo.length != 0){ 
+            for(var i=0;i<this.collisionInfo.length;i++){
+                var c = this.collisionInfo[i];                
+                if(this.dmgIgnore.indexOf(c.T) == -1){
+                    if(c.I>0){
+                        this.damage -= c.I;
+                        this.enabled = this.damage > 0;
+                    }                      
+                }              
+            }
+        }
+        super.Update(dt);
     }
 
     Render(x,y)
@@ -263,18 +343,19 @@ class Player extends Rectangle{
         super(C.ASSETS.PLAYER, 3, center, width, height, mass, friction, restitution, 1);
         this.size = 1;
         this.hits = null;
+        this.dmgIgnore = [C.ASSETS.PLATFORM];
+        this.isStatic = 0;
+        this.damage = 500; 
+          
         this.ignore = [C.ASSETS.SHOT];
         this.input = input;
-        this.isStatic = 0;   
         this.anim = new Anim(16, 2);    
-
     }
 
     Update(dt)
-    {   
-
+    {  
         if(this.collisionInfo.length > 0){
-            DEBUG.Print("I:", this.collisionInfo[0].I);
+            
             if(this.input.Left() || this.input.Right()){
                 if(this.input.Left()){
                     this.V.x -=2;
@@ -304,7 +385,15 @@ class Player extends Rectangle{
         }
 
         if(this.collisionInfo.length != 0){
-            this.G = 0;               
+            this.G = 0;    
+            // for(var i=0;i<this.collisionInfo.length;i++){
+            //     var c = this.collisionInfo[i];                
+            //     if(c.T != C.ASSETS.PLATFORM){
+            //         if(c.I>10){
+            //             this.damage -= c.I;
+            //         }                      
+            //     }              
+            // }
         }
 
         super.Update(dt);
@@ -313,7 +402,8 @@ class Player extends Rectangle{
     Render(x,y)
     {
         super.Render(x,y);
-        DEBUG.Print("L:", this.V.Length());        
+        DEBUG.Print("L:", this.V.Length());   
+        DEBUG.Print("D:", this.damage);     
     }
 }
 
@@ -356,17 +446,15 @@ class Chaser {
 
     Update(dt)
     {   var p = MAP.Pos;
-        //this.pos.x = this.target.C.x + this.offset.x;
-        //this.pos.y = this.target.C.y + this.offset.y;
         this.timer.Update(dt);
 
-        // if(!this.timer.enabled){
-        //     GAME.Launch(Util.RndI(p.l+64, p.r-64), 0, 
-        //         {x:Util.RndI(-32, 32),y:0}
-        //         );
+        if(!this.timer.enabled){
+            GAME.Launch(Util.RndI(p.l+64, p.r-64), 0, 
+                {x:Util.RndI(-32, 32),y:0}
+                );
 
-        //     this.timer.Set(this.rate);
-        // }   
+            this.timer.Set(this.rate);
+        }   
 
     }
 

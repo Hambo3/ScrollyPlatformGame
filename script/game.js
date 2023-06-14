@@ -3,7 +3,7 @@ class Blocky{
     constructor(canvas, objects)
     {
 
-        this.editorEnabled = 1;
+        this.editorEnabled = 0;
         this.offset;
 
         this.gameObjects = new ObjectPool();
@@ -20,39 +20,14 @@ class Blocky{
                 new Vector2((MAP.planSize.x/2)*32, (MAP.planSize.y*32)+16), 
                             MAP.planSize.x*32, 32, 0, 0.2, .2)
             );
-        // this.gameObjects.Add(
-        //     new StaticBody([],C.ASSETS.WALL, 
-        //         new Vector2(-16, (MAP.planSize.y/2)*32), 32, 
-        //                         MAP.planSize.y*32, 0, 0.2, .2)
-        //     );
-        // this.gameObjects.Add(
-        //     new StaticBody([],C.ASSETS.WALL, 
-        //         new Vector2((MAP.planSize.x*32)+16, 
-        //         (MAP.planSize.y/2)*32), 
-        //         32, MAP.planSize.y*32, 0, 0.2, .2)
-        //     );
         
-        var mapData = [];    
-        for (let r=0; r<MAP.planSize.y; r++){
-            var a = new Array(MAP.planSize.x); for (let i=0; i<MAP.planSize.x; i++) a[i] = 0;
-            mapData.push(a);
-        }
+        var mapData = this.CreateMap(MAP.planSize.x, MAP.planSize.y);    
 
-        // var x = 0;
-        // var y = MAP.planSize.y-6;
-        // var t = 0;
-        // do{
-        //     t = Util.OneOf([t==0?6:0,6]);
-        //     var n = Util.RndI(t==0?1:2, t==0?4:6);
-        //     y+=t==0?0:Util.RndI(-1,2);
-        //     for (let r=0; r<n; r++){ 
-        //         mapData[y][x] = t;
-        //         for (let c=y+1; c<24; c++){ 
-        //             mapData[c][x] = t==0?0:1;
-        //         }
-        //         x++;
-        //     }
-        // }while(x<MAP.planSize.x);
+        this.CreateLevel(mapData, -18, MAP.planSize.x, MAP.planSize.y);
+
+        this.CreateLevel(mapData, -12, MAP.planSize.x, MAP.planSize.y);
+
+        this.CreateLevel(mapData, -6, MAP.planSize.x, MAP.planSize.y);
 
         MAP.Init(true, mapData);
         var blocks = Util.UnpackWorldObjects(mapData);
@@ -61,8 +36,8 @@ class Blocky{
         {
             var b = blocks[i];
             var w = b.w*32;
-            var s = new StaticBody(b.t, C.ASSETS.PLATFORM, 
-                new Vector2((b.x*32)+w/2, (b.y*32)+16), w, 32, 0, 0.2, .2); 
+            var s = new StaticBody(b, C.ASSETS.PLATFORM, 
+                new Vector2((b.x*32)+w/2, (b.y*32)+16), w, 32, 0, 0.2, .2, b.d); 
             this.gameObjects.Add(s);
         }
 
@@ -73,10 +48,58 @@ class Blocky{
         }
     }
 
+    CreateMap(w, h){
+        var map = [];    
+        for (let r=0; r<h; r++){
+            var a = new Array(w); for (let i=0; i<w; i++) a[i] = 0;
+            map.push(a);
+        }
+        return map;
+    }
+
+    CreateLevel(map, l, w, h){
+        var x = 0;
+        var y = h+l;
+        var t = 0;
+        do{
+            t = Util.OneOf([t==0?6:0,6]);
+            if(t){
+                t=Util.OneOf([6,12]);
+            }
+            var n = Util.RndI(t==0?1:2, t==0?4:6);
+            var ys = t==0?0:Util.RndI(-1,2);
+            if(y+ys < h){
+                y+=ys;
+            }
+            if(x+n > w){
+                n = w-x;
+            }
+
+            for (let r=0; r<n; r++){ 
+                map[y][x] = t;
+                for (let c=y+1; c<h; c++){ 
+                    map[c][x] = t==0?0:1;
+                }
+                x++;
+            }
+        }while(x<w);        
+    }
+
+    PlatformBreak(t){
+        for (var i = 0; i < t.t.length; i++) {
+            var c = t.t[i];
+            var r = t.y;
+
+            var pt = new Vector2(c * MAP.tileSize, r * MAP.tileSize); 
+            var d = BlockFactory.Create(this.gameObjects, Util.OneOf([16,17]), pt.x, pt.y, 0, 
+                new Vector2(0,0));
+            //this.gameObjects.Add(d); 
+        }
+    }
     Launch(x, y, V){
-        var d = BlockFactory.Create(Util.OneOf([4,5,7,8,10,11]), x, y, 0, new Vector2(0,0));
+        var d = BlockFactory.Create(this.gameObjects, Util.OneOf([4,5,7,8,10,11,13,14,15]), x, y, 0, new Vector2(0,0));
         d.V = V; 
-        this.gameObjects.Add(d); 
+        //this.gameObjects.Add(d); 
     }
 
     AddObject(x, y, V){
