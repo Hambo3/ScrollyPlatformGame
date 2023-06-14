@@ -54,6 +54,28 @@ class MapManger{
     //     this.xTileInit();
     // }
 
+    Tile(t){
+        //try {
+            for (var i = 0; i < t.t.length; i++) {
+                var c = t.t[i];
+                var r = t.y;
+                MAP.mapData[r][c] = 0;
+
+                var pt = new Vector2(c * this.tileSize, r * this.tileSize); 
+                var s = GAMEOBJ.find(o=>o.id == t.s);
+                if(s.col){
+                    this.rend.Box(pt.x, pt.y,32,32,s.col);
+                }
+                else{
+                    this.rend.Sprite(pt.x+16, pt.y+16, SPRITES.Get(s.src, 0), 1, 0);
+                }
+            }            
+        //} catch (error) {
+        //    console.log({t});
+        //}
+
+    }
+
     TileInit(){
         var p;
         var col = this.planSize.x;

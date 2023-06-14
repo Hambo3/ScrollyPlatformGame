@@ -2,12 +2,12 @@ var C = {
     ASSETS:{
         NONE:0,
         BALL:1,
-        BLOCK:2,
-        WALL:3,
-        GROUND:4,
-        PLAYER:5,
-        SHOT:6,
-        PLATFORM:7
+        BLOCK:3,
+        WALL:5,
+        GROUND:6,
+        PLAYER:7,
+        SHOT:8,
+        PLATFORM:9
     },   
     GAMEMODE:
     {
@@ -32,7 +32,8 @@ var GAMEOBJ = [
         h:32,
         d:2,
         f:0,
-        r:0
+        r:0,
+        dm:500
     },
     {
         id:4,
@@ -43,7 +44,8 @@ var GAMEOBJ = [
         h:16,
         d:16,
         f:0.2,
-        r:0.2
+        r:0.2,
+        dm:1
     },
     {
         id:5,
@@ -54,7 +56,8 @@ var GAMEOBJ = [
         h:32,
         d:16,
         f:0.2,
-        r:0.2
+        r:0.2,
+        dm:1
     },
     {
         id:6,
@@ -65,7 +68,8 @@ var GAMEOBJ = [
         h:32,
         d:0,
         f:0.2,
-        r:0.2
+        r:0.2,
+        dm:2
     },
     {
         id:7,
@@ -76,7 +80,8 @@ var GAMEOBJ = [
         h:16,
         d:8,
         f:0.2,
-        r:0.2
+        r:0.2,
+        dm:1
     },
     {
         id:8,
@@ -87,7 +92,8 @@ var GAMEOBJ = [
         h:32,
         d:8,
         f:0.2,
-        r:0.2
+        r:0.2,
+        dm:1
     },
     {
         id:9,
@@ -98,7 +104,8 @@ var GAMEOBJ = [
         h:16,
         d:16,
         f:0.2,
-        r:0.2
+        r:0.2,
+        dm:1
     },
     {
         id:10,
@@ -109,7 +116,8 @@ var GAMEOBJ = [
         h:8,
         d:8,
         f:0.8,
-        r:0.8
+        r:0.8,
+        dm:1
     },
     {
         id:11,
@@ -120,7 +128,8 @@ var GAMEOBJ = [
         h:16,
         d:8,
         f:0.8,
-        r:0.8
+        r:0.8,
+        dm:1
     },
     {
         id:12,
@@ -131,33 +140,104 @@ var GAMEOBJ = [
         h:32,
         d:0,
         f:0.2,
-        r:0.2
+        r:0.2,
+        dm:0
+    },
+    {
+        id:13,
+        src:'ball32n',
+        s:0,
+        t:C.ASSETS.BALL,
+        w:16,
+        h:16,
+        d:8,
+        f:0.8,
+        r:0.8,
+        dm:1
+    },
+    {
+        id:14,
+        src:'ball64',
+        s:0,
+        t:C.ASSETS.BALL,
+        w:32,
+        h:32,
+        d:8,
+        f:0.8,
+        r:0.8,
+        dm:1
+    },
+    {
+        id:15,
+        src:'crate32',
+        s:0,
+        t:C.ASSETS.BLOCK,
+        w:32,
+        h:32,
+        d:8,
+        f:0.2,
+        r:0.2,
+        dm:1
+    },
+    {
+        id:16,
+        src:'shard1',
+        s:0,
+        t:C.ASSETS.BLOCK,
+        w:32,
+        h:16,
+        d:8,
+        f:0.2,
+        r:0.2,
+        dm:1
+    },
+    {
+        id:17,
+        src:'shard2',
+        s:0,
+        t:C.ASSETS.BLOCK,
+        w:32,
+        h:16,
+        d:8,
+        f:0.2,
+        r:0.2,
+        dm:1
     }
 ];
 
 class BlockFactory
 {
-    static Create(id, x, y, r, offset)
+    static Create(pool, id, x, y, r, offset)
     {
         var obj = GAMEOBJ.find(o=>o.id == id);
 
-        if(obj){
-            var b =null;
-            if(obj.t==C.ASSETS.BALL){
-                b =  new Circle(obj.t, obj.id, 
-                    new Vector2(x+offset.x, y+offset.y), 
-                    obj.w, obj.d, obj.f, obj.r, obj.s);
+        if(obj){   
+            var b = null;               
+            //b = pool.Is(obj.t);     
+            if(b){
+            //    b.Set(new Vector2(x+offset.x, y+offset.y), obj.id);
             }
             else{
-                b = new Rectangle(obj.t, obj.id, 
-                    new Vector2(x+offset.x, y+offset.y), 
-                    obj.w, obj.h, 
-                    obj.d, 
-                    obj.f, 
-                    obj.r, obj.s);  
+                if(obj.t==C.ASSETS.BALL || obj.t==C.ASSETS.BALL){
+                    b =  new Circle(obj.t, obj.id, 
+                        new Vector2(x+offset.x, y+offset.y), 
+                        obj.w, obj.d, obj.f, obj.r, obj.s, obj.dm);
+                }
+                else{
+                    b = new Rectangle(obj.t, obj.id, 
+                        new Vector2(x+offset.x, y+offset.y), 
+                        obj.w, obj.h, 
+                        obj.d, 
+                        obj.f, 
+                        obj.r, obj.s, obj.dm);  
+                }                
             }
 
-            PHYSICS.rotateShape(b, r);
+            if(r!=0){
+                PHYSICS.rotateShape(b, r);
+            }
+
+            pool.Add(b); 
             return b;
         }
     }
