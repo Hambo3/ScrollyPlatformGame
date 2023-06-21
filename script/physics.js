@@ -23,40 +23,40 @@ class World{
 
     Update(objects, dt)
     {  
+        var clx = [];
         //var collisionInfo = {}; // final collision between two shapes
-        for(var k = this.smoothing; k--;){
+        for(var k = this.smoothing; k--;){            
             for(var i=0, l=objects.length; i<l; i++){   
-                //var collisionInfo = null; 
-                objects[i].collisionInfo = [];
                 for(var j=i+1; j<l; j++){
-                    var collisionInfo = {D:null,N:null,S:null,E:null,I:null,T:null};  
+                    var collisionInfo = {D:null,N:null,S:null,E:null,I:null};  
                     // Test bounds
                     var p = this.boundTest(objects[i], objects[j]);
                     if(p){
-                        //var collisionInfo = {};
                         // Test collision
                         if(this.testCollision(objects[i], objects[j], collisionInfo)){
                             
                             // Make sure the normal is always from object[i] to object[j]
                             if(this.dot(collisionInfo.N, 
-                                    this.substract(objects[j].C, objects[i].C)) < 0){
+                                    this.substract(objects[j].C, objects[i].C)) < 0)
+                            {
                                 collisionInfo = {
                                     D: collisionInfo.D,
                                     N: this.scale(collisionInfo.N, -1),
                                     S: collisionInfo.E,
-                                    E: collisionInfo.S
+                                    E: collisionInfo.S,
+                                    I: collisionInfo.I
                                 };
                             }
                             
                             // Resolve collision
                             this.resolveCollision(objects[i], objects[j], collisionInfo);
                         }
-                        if(collisionInfo.D!=null){
-                            objects[i].collisionInfo.push(collisionInfo);
-                        }
+                        if(collisionInfo.D != null){
+                            if(k==this.smoothing-1){
+                                clx.push({C:collisionInfo, P1:objects[i], P2:objects[j]});
+                            }
+                           }
                     } 
-
-                    //objects[j].collisionInfo = collisionInfo;
                 }
                 
                 // Update position/rotation
@@ -66,6 +66,8 @@ class World{
                 this.rotateShape(objects[i], objects[i].v * dt);            
             }
         }
+
+        return clx;
     }
 
     // Collision info setter
@@ -76,7 +78,6 @@ class World{
         collision.S = S; // start
         collision.E = this.add(S, this.scale(N, D)); // end
         collision.I = I;
-        collision.T = T;
     }
 
     // Move a shape along a vector
@@ -208,9 +209,7 @@ class World{
                 var radiusC2 = this.scale(normalFrom2to1, c2.B);
                 this.setInfo(collisionInfo, rSum - dist, 
                     this.normalize(vFrom1to2), this.add(c2.C, radiusC2),
-                    (c1.V.Length()*c1.M) + (c2.V.Length()*c2.M),
-                    c2.type
-                    );
+                    (c1.V.Length()*c1.M) + (c2.V.Length()*c2.M));
             //}
             
             /*
@@ -251,17 +250,13 @@ class World{
                         this.setInfo(collisionInfo, collisionInfoR1.D, collisionInfoR1.N, 
                             this.substract(collisionInfoR1.S, 
                                 this.scale(collisionInfoR1.N, collisionInfoR1.D))
-                                ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M),
-                                c2.type
-                                );                       
+                                ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M) );                       
                     }                    
                     else 
                     {                           
                         this.setInfo(collisionInfo, collisionInfoR2.D, 
                             this.scale(collisionInfoR2.N, -1), collisionInfoR2.S
-                            ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M),
-                            c2.type
-                            );
+                            ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M) );
                     }
                 }
             }
@@ -311,8 +306,7 @@ class World{
                 // the center of circle is inside of c1angle
                 this.setInfo(collisionInfo, c2.B - bestDistance, c1.N[nearestEdge], 
                     this.substract(circ2Pos, this.scale(c1.N[nearestEdge], c2.B))
-                    ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M),
-                    c2.type);
+                    ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M));
             }
             else 
             {
@@ -334,8 +328,7 @@ class World{
                     normal = this.normalize(v1);
                     this.setInfo(collisionInfo, c2.B - dis, normal, 
                         this.add(circ2Pos, this.scale(normal, -c2.B))
-                        ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M),
-                        c2.type);
+                        ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M));
                 }
                 else {            
                     // the center of circle is in corner region of X[nearestEdge+1]
@@ -354,8 +347,7 @@ class World{
                         normal = this.normalize(v1);
                         this.setInfo(collisionInfo, c2.B - dis, normal, 
                             this.add(circ2Pos, this.scale(normal, -c2.B))
-                            ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M),
-                            c2.type);
+                            ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M));
                     }
                     else {
                         
@@ -364,8 +356,7 @@ class World{
                             this.setInfo(collisionInfo, c2.B - bestDistance, c1.N[nearestEdge], 
                                 this.substract(circ2Pos, 
                                     this.scale(c1.N[nearestEdge], c2.B))
-                                    ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M),
-                                    c2.type);
+                                    ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M));
                         }
                         
                         else {

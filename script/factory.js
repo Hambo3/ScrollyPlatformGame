@@ -22,222 +22,121 @@ var C = {
 }
 
 var GAMEOBJ = [
-    {id:0,col:"#999"},{id:1,col:"#333"},{id:2,col:"#555"},
+    {id:0,col:"#999"},{id:1,col:"#731"},{id:2,col:"#555"},
     {
-        id:3,
-        src:'player',
-        s:0,
-        t:C.ASSETS.BLOCK,
-        w:32,
-        h:32,
-        d:2,
-        f:0,
-        r:0,
-        dm:500
+        id:3, src:'player',
+        s:0, t:C.ASSETS.BLOCK,
+        w:32, h:32, d:2, f:0, r:0, dm:500
     },
     {
-        id:4,
-        src:'block16',
-        s:0,
-        t:C.ASSETS.BLOCK,
-        w:16,
-        h:16,
-        d:16,
-        f:0.2,
-        r:0.2,
-        dm:1
+        id:4, src:'block32',
+        s:0, t:C.ASSETS.BLOCK,
+        w:32, h:32, d:16, f:0.2, r:0.2, dm:20
     },
     {
-        id:5,
-        src:'block32',
-        s:0,
-        t:C.ASSETS.BLOCK,
-        w:32,
-        h:32,
-        d:16,
-        f:0.2,
-        r:0.2,
-        dm:1
+        id:5, src:'ice32',
+        s:0, t:C.ASSETS.BLOCK,
+        w:32, h:32, d:8, f:0.2, r:0.2, dm:10
     },
     {
-        id:6,
-        src:'brick32',
-        s:1,
-        t:C.ASSETS.BLOCK,
-        w:32,
-        h:32,
-        d:0,
-        f:0.2,
-        r:0.2,
-        dm:2
+        id:6, src:'crate32',
+        s:0, t:C.ASSETS.BLOCK,
+        w:32, h:32, d:12, f:0.2, r:0.2, dm:15
     },
     {
-        id:7,
-        src:'box16',
-        s:0,
-        t:C.ASSETS.BLOCK,
-        w:16,
-        h:16,
-        d:8,
-        f:0.2,
-        r:0.2,
-        dm:1
+        id:7, src:'ground32',
+        s:1, t:C.ASSETS.BLOCK,
+        w:32, h:32, d:0, f:0.2, r:0.2, dm:0
     },
     {
-        id:8,
-        src:'box32',
-        s:0,
-        t:C.ASSETS.BLOCK,
-        w:32,
-        h:32,
-        d:8,
-        f:0.2,
-        r:0.2,
-        dm:1
+        id:8, src:'log32l',
+        s:1, t:C.ASSETS.BLOCK,
+        w:32, h:32, d:0, f:0.2, r:0.2, dm:8
     },
     {
-        id:9,
-        src:'brick10h',
-        s:0,
-        t:C.ASSETS.BLOCK,
-        w:160,
-        h:16,
-        d:16,
-        f:0.2,
-        r:0.2,
-        dm:1
+        id:9, src:'log32',
+        s:1, t:C.ASSETS.BLOCK,
+        w:32, h:32, d:0, f:0.2, r:0.2, dm:8
     },
     {
-        id:10,
-        src:'ball16',
-        s:0,
-        t:C.ASSETS.BALL,
-        w:8,
-        h:8,
-        d:8,
-        f:0.8,
-        r:0.8,
-        dm:1
+        id:10, src:'log32r',
+        s:1, t:C.ASSETS.BLOCK,
+        w:32, h:32, d:0, f:0.2, r:0.2, dm:8
     },
     {
-        id:11,
-        src:'ball32',
-        s:0,
-        t:C.ASSETS.BALL,
-        w:16,
-        h:16,
-        d:8,
-        f:0.8,
-        r:0.8,
-        dm:1
+        id:11, src:'shard1',
+        s:0, t:C.ASSETS.BLOCK,
+        w:32, h:16, d:8, f:0.2, r:0.2, dm:8
     },
     {
-        id:12,
-        src:'ground32',
-        s:1,
-        t:C.ASSETS.BLOCK,
-        w:32,
-        h:32,
-        d:0,
-        f:0.2,
-        r:0.2,
-        dm:0
+        id:12, src:'shard2',
+        s:0, t:C.ASSETS.BLOCK,
+        w:32, h:16, d:8, f:0.2, r:0.2, dm:8
     },
     {
-        id:13,
-        src:'ball32n',
-        s:0,
-        t:C.ASSETS.BALL,
-        w:16,
-        h:16,
-        d:8,
-        f:0.8,
-        r:0.8,
-        dm:1
+        id:13, src:'rock32',
+        s:0, t:C.ASSETS.BALL,
+        w:16, h:16, d:8, f:0.8, r:0.8, dm:20
     },
     {
-        id:14,
-        src:'ball64',
-        s:0,
-        t:C.ASSETS.BALL,
-        w:32,
-        h:32,
-        d:8,
-        f:0.8,
-        r:0.8,
-        dm:1
+        id:14, src:'rock64',
+        s:0, t:C.ASSETS.BALL,
+        w:32, h:32, d:8, f:0.8, r:0.8, dm:20
     },
     {
-        id:15,
-        src:'crate32',
-        s:0,
-        t:C.ASSETS.BLOCK,
-        w:32,
-        h:32,
-        d:8,
-        f:0.2,
-        r:0.2,
-        dm:1
+        id:15, src:'rock16',
+        s:0, t:C.ASSETS.BALL,
+        w:16, h:16, d:8, f:0.8, r:0.8, dm:20
     },
     {
-        id:16,
-        src:'shard1',
-        s:0,
-        t:C.ASSETS.BLOCK,
-        w:32,
-        h:16,
-        d:8,
-        f:0.2,
-        r:0.2,
-        dm:1
+        id:16, src:'log10',
+        s:0, t:C.ASSETS.BLOCK,
+        w:160, h:16, d:16, f:0.2, r:0.2, dm:10
     },
     {
-        id:17,
-        src:'shard2',
-        s:0,
-        t:C.ASSETS.BLOCK,
-        w:32,
-        h:16,
-        d:8,
-        f:0.2,
-        r:0.2,
-        dm:1
-    }
+        id:17, src:'log16l',
+        s:1, t:C.ASSETS.BLOCK,
+        w:16, h:16, d:0, f:0.2, r:0.2, dm:10
+    },
+    {
+        id:18, src:'log16',
+        s:1, t:C.ASSETS.BLOCK,
+        w:16, h:16, d:0, f:0.2, r:0.2, dm:10
+    },
+    {
+        id:19, src:'log16r',
+        s:1, t:C.ASSETS.BLOCK,
+        w:16, h:16, d:0, f:0.2, r:0.2, dm:10
+    },
 ];
 
 class BlockFactory
 {
-    static Create(pool, id, x, y, r, offset)
+    static Create(id, x, y, r, offset)
     {
         var obj = GAMEOBJ.find(o=>o.id == id);
 
         if(obj){   
             var b = null;               
-            //b = pool.Is(obj.t);     
-            if(b){
-            //    b.Set(new Vector2(x+offset.x, y+offset.y), obj.id);
+
+            if(obj.t==C.ASSETS.BALL || obj.t==C.ASSETS.BALL){
+                b =  new Circle(obj.t, obj.id, 
+                    new Vector2(x+offset.x, y+offset.y), 
+                    obj.w, obj.d, obj.f, obj.r, obj.dm);
             }
             else{
-                if(obj.t==C.ASSETS.BALL || obj.t==C.ASSETS.BALL){
-                    b =  new Circle(obj.t, obj.id, 
-                        new Vector2(x+offset.x, y+offset.y), 
-                        obj.w, obj.d, obj.f, obj.r, obj.s, obj.dm);
-                }
-                else{
-                    b = new Rectangle(obj.t, obj.id, 
-                        new Vector2(x+offset.x, y+offset.y), 
-                        obj.w, obj.h, 
-                        obj.d, 
-                        obj.f, 
-                        obj.r, obj.s, obj.dm);  
-                }                
+                b = new Rectangle(obj.t, obj.id, 
+                    new Vector2(x+offset.x, y+offset.y), 
+                    obj.w, obj.h, 
+                    obj.d, 
+                    obj.f, 
+                    obj.r, obj.dm);  
             }
 
             if(r!=0){
                 PHYSICS.rotateShape(b, r);
             }
 
-            pool.Add(b); 
             return b;
         }
     }

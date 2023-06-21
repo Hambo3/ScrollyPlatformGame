@@ -107,6 +107,14 @@ class Render{
         this.ctx.fill();
     }
 
+    SpritePrimitive(x, y, poly, col, size)
+    {
+        for(var i = 0; i < poly.length; i+=2) 
+        {
+            this.Plane(x, y, poly[i+1],  col[poly[i]],  size);
+        } 
+    }
+
     Sprite(x, y, sprite, scale, angle=0, op){
         var dim = sprite.dim;   
 

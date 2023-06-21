@@ -157,7 +157,6 @@ class RigidShape{
                 new Vector2(C.x + W / 2, C.y + H / 2),
                 new Vector2(C.x - W / 2, C.y + H / 2)
                 ];
-        this.collisionInfo = [];
         PHYSICS.computeRectNormals(this);
     }
 }
@@ -177,12 +176,32 @@ class GameObject extends RigidShape{
         this.isStatic = 0;
         this.spriteId;
         this.body;
-        this.damage = 1;
+        this.damage = 0;
+        this.collidedWith = [];
+
+        this.col = ["#a61","#e92","#fa3"];
     }
 
-    Update(dt)
+    Update(dt, ci)
     {   
+        if(this.damage > 0 && ci.length != 0){ 
+            for (var i = 0; i < ci.length; i++) {
+                var perp = ci[i].P1 != this ? ci[i].P1 : ci[i].P2;
+                var C = ci[i].C;
+                if(this.dmgIgnore.indexOf(perp.type) == -1 && 
+                    this.collidedWith.indexOf(perp) == -1){                    
+                    if(C.I>3){
+                        this.collidedWith.push(perp);
+                        this.damage -= C.I;
+                        if(this.damage <= 0){
+                            this.enabled = 0;
+                            GAME.ParticleGen(this.C.Clone(), 3, this.col, 5);
+                        }
 
+                    }                      
+                } 
+            }
+        }
     }
 
     get Body() {
@@ -196,166 +215,106 @@ class GameObject extends RigidShape{
 }
 
 
-class Circle extends GameObject{
-
-    constructor(type, sprId, center, radius, mass, friction, restitution, isStatic)
-    {        
-        super(center, mass, friction, restitution, 0 ,radius);
-        this.enabled = 1;
-        this.size = 1;
-        this.type = type;
-        this.hits = null;//[C.ASSETS.GROUND,C.ASSETS.WALL,C.ASSETS.BLOCK];
-        this.dmgIgnore = [];
-        this.isStatic = isStatic;
-
-        this.spriteId = sprId;
-        this.body = GAMEOBJ.find(o=>o.id == sprId).src;
-        this.damage = 1;
-    }
-
-    Set(C, sprId){
-        this.spriteId = sprId;
-        this.body = GAMEOBJ.find(o=>o.id == sprId).src;
-        this.damage = 1;
-        this.C = C;
-        this.enabled = 1;
-    }
-
-    Update(dt)
-    {   
-        if(this.damage > 0 && this.collisionInfo.length != 0){ 
-            for(var i=0;i<this.collisionInfo.length;i++){
-                var c = this.collisionInfo[i];                
-                if(this.dmgIgnore.indexOf(c.T) == -1){
-                    if(c.I>0){
-                        this.damage -= c.I;
-                        this.enabled = this.damage > 0;
-                    }                      
-                }              
-            }
-        }
-        super.Update(dt);
-    }
-
-    Render(x,y)
-    {
-        super.Render(x, y);
-        //GFX.Sprite(this.C.x-x, this.C.y-y, this.src, this.size, this.G);
-    }
-}
-
 class StaticBody extends GameObject{
 
     constructor(tiles, type, center, width, height, mass, friction, restitution, dmg)
     {        
         super(center, mass, friction, restitution, 1, Math.hypot(width, height)/2, width, height);
         this.enabled = 1;
-        this.size = 1;
         this.type = type;
-        this.hits = null;
+
         this.dmgIgnore = [C.ASSETS.PLAYER];
+        this.deadly = 0;
         this.isStatic = 1;        
         this.damage = dmg|0;
 
-        this.tiles = tiles;
+        this.tiles = tiles;        
     }
 
-    Update(dt)
+    Update(dt, ci)
     {
-        if(this.damage > 0 && this.collisionInfo.length != 0){ 
-            for(var i=0;i<this.collisionInfo.length;i++){
-                var c = this.collisionInfo[i];                
-                if(this.dmgIgnore.indexOf(c.T) == -1){
-                    if(c.I>0){
-                        this.damage -= c.I;
-                         if(this.damage<=0){
-                            this.enabled = 0;
-                            
-                            MAP.Tile(this.tiles);
-                            GAME.PlatformBreak(this.tiles);
-                         }
-                    }                      
-                }              
-            }
+        super.Update(dt, ci);
+
+        if(!this.enabled){        
+            MAP.Tile(this.tiles);
+            GAME.PlatformBreak(this.tiles);
         }
-        super.Update(dt);
     }
 
     Render(x,y)
     {
         //super.Render(x, y);
-        //GFX.Sprite(this.C.x-x, this.C.y-y, this.src, this.size, this.G);
     }
 }
 
-class Rectangle extends GameObject{
+class Circle extends GameObject{
 
-    constructor(type, sprId, center, width, height, mass, friction, restitution, isStatic)
+    constructor(type, sprId, center, radius, mass, friction, restitution, dmg)
     {        
-        super(center, mass, friction, restitution, 1, Math.hypot(width, height)/2, width, height);
-        this.enabled = 1;        
-        
-        this.size = 1;
-        this.type = type;
-        this.hits = null;
-        this.dmgIgnore = [];
-        this.isStatic = isStatic;
-        this.spriteId = sprId;
-        this.body = GAMEOBJ.find(o=>o.id == sprId).src;
-        this.damage = 1;
-    }
-
-    Set(C, sprId){
-        this.spriteId = sprId;
-        this.body = GAMEOBJ.find(o=>o.id == sprId).src;
-        this.damage = 1;
-        this.C = C;
+        super(center, mass, friction, restitution, 0 ,radius);
         this.enabled = 1;
+        this.type = type;
+
+        this.spriteId = sprId;
+        this.body = GAMEOBJ.find(o=>o.id == sprId).src;
+        this.damage = dmg;
     }
 
-    Update(dt)
-    {        
-        if(this.damage > 0 && this.collisionInfo.length != 0){ 
-            for(var i=0;i<this.collisionInfo.length;i++){
-                var c = this.collisionInfo[i];                
-                if(this.dmgIgnore.indexOf(c.T) == -1){
-                    if(c.I>0){
-                        this.damage -= c.I;
-                        this.enabled = this.damage > 0;
-                    }                      
-                }              
-            }
-        }
-        super.Update(dt);
+    Update(dt, ci)
+    {   
+        super.Update(dt, ci);
     }
 
     Render(x,y)
     {
         super.Render(x, y);
-        //GFX.Sprite(this.C.x-x, this.C.y-y, this.src, this.size, this.G);
     }
 }
 
-class Player extends Rectangle{
+class Rectangle extends GameObject{
+
+    constructor(type, sprId, center, width, height, mass, friction, restitution, dmg)
+    {        
+        super(center, mass, friction, restitution, 1, Math.hypot(width, height)/2, width, height);
+        this.enabled = 1;       
+        this.type = type;
+
+        this.spriteId = sprId;
+        this.body = GAMEOBJ.find(o=>o.id == sprId).src;
+        this.damage = dmg;
+    }
+
+    Update(dt, ci)
+    {
+        super.Update(dt, ci);
+    }
+
+    Render(x,y)
+    {
+        super.Render(x, y);
+    }
+}
+
+class Player extends GameObject{
 
     constructor(input, center, width, height, mass, friction, restitution)
     {        
-        super(C.ASSETS.PLAYER, 3, center, width, height, mass, friction, restitution, 1);
-        this.size = 1;
-        this.hits = null;
+        super(center, mass, friction, restitution, 1, Math.hypot(width, height)/2, width, height);
+        this.type = C.ASSETS.PLAYER;
+
         this.dmgIgnore = [C.ASSETS.PLATFORM];
-        this.isStatic = 0;
+        this.spriteId = 3;
+        this.body = GAMEOBJ.find(o=>o.id == this.spriteId).src;
         this.damage = 500; 
           
         this.ignore = [C.ASSETS.SHOT];
         this.input = input;
-        this.anim = new Anim(16, 2);    
+        this.anim = new Anim(16, 2);        
     }
 
-    Update(dt)
+    Update(dt, ci)
     {  
-        if(this.collisionInfo.length > 0){
-            
+        if(ci.length > 0){
             if(this.input.Left() || this.input.Right()){
                 if(this.input.Left()){
                     this.V.x -=2;
@@ -376,27 +335,20 @@ class Player extends Rectangle{
             }
         }
 
+        // if(this.input.Fire1()){
+        //     GAME.AddObject(this.C.x, this.C.y, {x:-32,y:-40});
+        // }
+
         if(this.input.Fire1()){
-            GAME.AddObject(this.C.x, this.C.y, {x:-32,y:-40});
+            GAME.AddObject(this.C.x, this.C.y, new Vector2(32,-40));
+            //GAME.ParticleGen(this.C.Clone(), 3, this.col, 5);
         }
 
-        if(this.input.Fire2()){
-            GAME.AddObject(this.C.x, this.C.y, {x:32,y:-40});
+        if(ci.length != 0){
+             this.G = 0;    
         }
 
-        if(this.collisionInfo.length != 0){
-            this.G = 0;    
-            // for(var i=0;i<this.collisionInfo.length;i++){
-            //     var c = this.collisionInfo[i];                
-            //     if(c.T != C.ASSETS.PLATFORM){
-            //         if(c.I>10){
-            //             this.damage -= c.I;
-            //         }                      
-            //     }              
-            // }
-        }
-
-        super.Update(dt);
+        super.Update(dt, ci);
     }
 
     Render(x,y)
@@ -407,20 +359,20 @@ class Player extends Rectangle{
     }
 }
 
-class Shot extends Circle{
+class Shot extends GameObject{
 
     constructor( center)
     {        
-        super(C.ASSETS.SHOT, 10, center, 8, 6, 0.8, 0.8, 1);
-        this.size = 1;
-        this.hits = null;
-        this.ignore = null;
-        this.isStatic = 0;
+        super(center, 6, 0.8, 0.8, 0 ,8);   
+
+        this.type = C.ASSETS.SHOT;
+        this.spriteId = 15;
+        this.body = GAMEOBJ.find(o=>o.id == this.spriteId).src;
     }
 
-    Update(dt)
+    Update(dt, ci)
     {   
-        super.Update(dt);
+        super.Update(dt, ci);
     }
 
     Render(x,y)
@@ -446,11 +398,12 @@ class Chaser {
 
     Update(dt)
     {   var p = MAP.Pos;
+        this.pos.x+=60*dt;
         this.timer.Update(dt);
 
         if(!this.timer.enabled){
             GAME.Launch(Util.RndI(p.l+64, p.r-64), 0, 
-                {x:Util.RndI(-32, 32),y:0}
+                new Vector2(Util.RndI(-32, 32),0)
                 );
 
             this.timer.Set(this.rate);
@@ -460,5 +413,52 @@ class Chaser {
 
     Render(x,y)
     {
+    }
+}
+
+class Particle{
+
+    constructor(pos){
+        this.dir;
+        this.op = 1;
+        this.size = 1;
+        this.enabled = 1;
+        this.velocity = new Vector2();
+        this.damping = 0.8;
+        this.speed = 0;
+        this.body;
+
+        this.motion = 0;
+    }
+
+    Body(){
+        return this.body[this.motion];
+    }
+
+    Update(dt){
+        if(this.enabled){
+            var acc = this.dir.Clone().Normalize(dt).Multiply(this.speed);
+            this.velocity.Add(acc);
+            if(this.op>0){
+                this.op-=0.01;
+                this.rgb.a = this.op;
+                this.col = [this.rgb.RGBA()];
+                if(this.op<=0){
+                    this.enabled = 0;
+                }             
+            }
+        
+            this.pos.Add(this.velocity);
+
+            // apply physics
+            this.velocity.Multiply(this.damping);
+        }
+    }
+
+    Render(x,y){
+        if(this.enabled){
+            GFX.SpritePrimitive(this.pos.x-x, this.pos.y-y, 
+                this.Body(), this.col, this.size);
+        }
     }
 }
