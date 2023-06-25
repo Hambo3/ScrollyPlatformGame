@@ -14,26 +14,32 @@ class Blocky{
             new Vector2(2.5*32, (MAP.planSize.y-7)*32), 32, 32, 2, 0, 0);
         this.gameObjects.Add(this.plr);  
 
-        this.gameObjects.Add(
-            new StaticBody([],C.ASSETS.GROUND, 
-                new Vector2((MAP.planSize.x/2)*32, (MAP.planSize.y*32)+16), 
-                            MAP.planSize.x*32, 32, 0, 0.2, .2)
-            );
+        // this.gameObjects.Add(
+        //     new StaticBody([],C.ASSETS.GROUND, 
+        //         new Vector2((MAP.planSize.x/2)*32, (MAP.planSize.y*32)+16), 
+        //                     MAP.planSize.x*32, 32, 0, 0.2, .2)
+        //     );
 
-
-
-        var mapData = this.CreateMap(MAP.planSize.x, MAP.planSize.y);    
+        var mapData = this.CreateMap(MAP.planSize.x, MAP.planSize.y);
+        var levelData = this.CreateMap(MAP.planSize.x, MAP.planSize.y);
 
         //this.CreateLevel(mapData, -18, MAP.planSize.x, MAP.planSize.y);
 
-        //this.CreateLevel(mapData, -12, MAP.planSize.x, MAP.planSize.y);
+        this.CreateLevel(mapData, levelData, -12, MAP.planSize.x, MAP.planSize.y);
 
+        //this.DebugCreateLevel        
         this.CreateLevel
-        //this.DebugCreateLevel
-        (mapData, -6, MAP.planSize.x, MAP.planSize.y);
+                (mapData, levelData, -6, MAP.planSize.x, MAP.planSize.y);
 
-        MAP.Init(true, mapData);
-        var blocks = Util.UnpackWorldObjects(mapData);
+        MAP.Init(true, mapData, levelData);
+
+        // levelData[0][3] = 7;
+        // levelData[0][4] = 7;
+        // levelData[0][5] = 7;
+        // levelData[0][6] = 9;
+        // levelData[0][7] = 9;
+        // levelData[0][8] = 9;
+        var blocks = Util.UnpackWorldObjects(levelData);
 
         for (var i = 0; i < blocks.length; i++) 
         {
@@ -44,7 +50,8 @@ class Blocky{
             this.gameObjects.Add(s);
         }
 
-        this.chaser = new Chaser(this.plr, new Vector2(-400,-100));
+        this.chaser = new Chaser(this.plr, 
+            new Vector2(-400,-100), MAP.mapSize.x - (MAP.screenSize.x/2), MAP.screenSize.x*MAP.maxScale, 60);
         this.gameObjects.Add(this.chaser);
     }
 
@@ -61,21 +68,17 @@ class Blocky{
         
         var y = h+l;
         var t = 0;
-        var x=this.Section(map, y, 0, 7, h, 18);
-       
+        var x=this.Section(map, y, 0, 7, h, 18);       
     }
 
-    CreateLevel(map, l, w, h){
-        
+    CreateLevel(map, lvl, l, w, h){        
         var y = h+l;
         var t = 0;
-        var x=this.Section(map, y, 0, 7, h, 8);
+        var x=this.Section(map, lvl, y, 0, 7, h, 8);
 
         do{
-            t = Util.OneOf([t==0?1:0,1]);
-            if(t){
-                t=Util.OneOf([7,9]);
-            }
+            t = Util.OneOf([t==0 || t == 9?7:Util.OneOf([0,7,9])]); //gap or plat
+
             var n = Util.RndI(t==0?1:2, t==0?4:6);
             var ys = t==0?0:Util.RndI(-1,2);
             if(y+ys < h){
@@ -85,15 +88,15 @@ class Blocky{
                 n = w-x;
             }
 
-            x=this.Section(map, y, x, t, h, n);
+            x=this.Section(map, lvl, y, x, t, h, n);
         }while(x<w);        
     }
 
-    Section(map, y, x, t, h, n){
-        for (let r=0; r<n; r++){ 
-
-            map[y][x] = t==9 && r==0 ? t-1 :
-                        t==9 && r==n-1 ? t+1 :
+    Section(map, lvl, y, x, t, h, n){
+        for (let r=0; r<n; r++)
+        { 
+            lvl[y][x] = t==9 && r==0 ? t-1 :    //log 
+                        t==9 && r==n-1 ? t+1 :  //ends
                         t;
             for (let c=y+1; c<h; c++){ 
                 map[c][x] = t==0?0:1;
@@ -153,14 +156,25 @@ class Blocky{
         }
     }
     
+
+    IsLeftBehind(x){
+        return x < this.chaser.Behind;
+    }
+
     Update(dt)
     {   
-        //TODO zoom depending on how close to the edge
-    //     this.offset = MAP.ScrollTo(new Vector2(
-    //         this.plr.C.x > this.chaser.pos.x ? this.plr.C.x : this.chaser.pos.x, 
-    //         this.plr.C.y));
-        this.offset = MAP.ScrollTo(new Vector2(this.plr.C.x, this.plr.C.y));
-        
+        //TODO stop chaser at end??
+        if(this.plr.C.x < (this.chaser.pos.x-340) && MAP.scale < MAP.maxScale){
+            MAP.Zoom(0.001);
+        }
+        else if(MAP.scale > 1){
+            MAP.Zoom(-0.001);
+        }
+        this.offset = MAP.ScrollTo(new Vector2(
+            this.plr.C.x > this.chaser.pos.x ? this.plr.C.x : this.chaser.pos.x, 
+            this.plr.C.y));
+        //this.offset = MAP.ScrollTo(new Vector2(this.plr.C.x, this.plr.C.y));
+
         if(Input.IsDown('x') ) {
             MAP.Zoom(0.01);
         }
@@ -206,6 +220,11 @@ class Blocky{
   
         Input.Render();
 
+        DEBUG.Print("MinZ:",MAP.minScale);
+        DEBUG.Print("MaxZ:",MAP.maxScale);
+        DEBUG.Print("Z:",MAP.scale);
+        DEBUG.Print("PX:",this.plr.C.x);
+        DEBUG.Print("CX:",this.chaser.pos.x);
         DEBUG.Print("O X:",MAP.Pos.l);
         DEBUG.Print("O Y:",MAP.Pos.r);
     }

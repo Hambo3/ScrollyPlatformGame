@@ -1,8 +1,8 @@
 class MapManger{
 
     constructor(ctx, md, b){
-        this.mapData = md.data;//Util.UnpackMap(md.data);
-        
+        this.mapData = null;
+        this.lvlData = null;
         this.offset = new Vector2();
         this.planSize = new Vector2(md.size.world.width, md.size.world.height);
         this.mapSize = new Vector2(md.size.world.width, md.size.world.height);
@@ -31,65 +31,56 @@ class MapManger{
         return {l:this.offset.x, r:this.offset.x+(this.screenSize.x*this.scale)};
     }
 
-    Init(reset, data){
+    Init(reset, bgData, lvlData){
         if(reset){            
             this.rend.Box(0,0,this.mapSize.x,this.mapSize.y);
         }
-        this.mapData = data;
+        this.mapData = bgData;
+        this.lvlData = lvlData;
         this.TileInit();
     }
-    
-    // TileInit(){
-    //     for (let r=0; r<this.planSize.y; r++){
-    //         var a = new Array(this.planSize.x); for (let i=0; i<this.planSize.x; i++) a[i] = 0;
-    //         this.mapData.push(a);
-    //     }
-    //     var x = 0;
-    //     var y = 20;//parseInt(this.planSize.y/3);
-    //     do{
-    //         this.mapData[y][x] = 6;
-    //         x++;
-    //     }while(x<this.planSize.x);
-
-    //     this.xTileInit();
-    // }
 
     Tile(t){
-        //try {
-            for (var i = 0; i < t.t.length; i++) {
-                var c = t.t[i];
-                var r = t.y;
-                MAP.mapData[r][c] = 0;
+        for (var i = 0; i < t.t.length; i++) {
+            var c = t.t[i];
+            var r = t.y;
+            this.lvlData[r][c] = 0;
 
-                var pt = new Vector2(c * this.tileSize, r * this.tileSize); 
-                var s = GAMEOBJ.find(o=>o.id == t.s);
+            var p =this.mapData[r][c];
+            var pt = new Vector2(c * this.tileSize, r * this.tileSize); 
+            var s = GAMEOBJ.find(o=>o.id == p);
+            if(s.col){
+                this.rend.Box(pt.x, pt.y,32,32,s.col);
+            }
+            else{
+                this.rend.Sprite(pt.x+16, pt.y+16, SPRITES.Get(s.src, 0), 1, 0);
+            }
+        }           
+    }
+
+    TileInit(){
+        var p,l;
+        var col = this.planSize.x;
+        var row = this.planSize.y;
+
+        for(var r = 0; r < row; r++) 
+        {
+            for(var c = 0; c < col; c++) 
+            {
+                p = this.mapData[r][c];
+                l = this.lvlData[r][c];
+                var pt = new Vector2(c * this.tileSize, r * this.tileSize);   
+
+                var s = GAMEOBJ.find(o=>o.id == p);
                 if(s.col){
                     this.rend.Box(pt.x, pt.y,32,32,s.col);
                 }
                 else{
                     this.rend.Sprite(pt.x+16, pt.y+16, SPRITES.Get(s.src, 0), 1, 0);
                 }
-            }            
-        //} catch (error) {
-        //    console.log({t});
-        //}
 
-    }
-
-    TileInit(){
-        var p;
-        var col = this.planSize.x;
-        var row = this.planSize.y;
-
-        try {
-            for(var r = 0; r < row; r++) 
-            {
-                for(var c = 0; c < col; c++) 
-                {
-                    p = this.mapData[r][c];
-                    var pt = new Vector2(c * this.tileSize, r * this.tileSize);   
-
-                    var s = GAMEOBJ.find(o=>o.id == p);
+                if(l>0){
+                    s = GAMEOBJ.find(o=>o.id == l);
                     if(s.col){
                         this.rend.Box(pt.x, pt.y,32,32,s.col);
                     }
@@ -97,10 +88,8 @@ class MapManger{
                         this.rend.Sprite(pt.x+16, pt.y+16, SPRITES.Get(s.src, 0), 1, 0);
                     }
                 }
-            }            
-        } catch (error) {
-            //console.log("r:"+r+ " c:"+c);
-        }
+            }
+        }           
     }
 
     Zoom(rate){

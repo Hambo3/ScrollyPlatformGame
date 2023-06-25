@@ -44,22 +44,22 @@ var GAMEOBJ = [
         w:32, h:32, d:12, f:0.2, r:0.2, dm:15
     },
     {
-        id:7, src:'ground32',
+        id:7, pid:7,src:'ground32',
         s:1, t:C.ASSETS.BLOCK,
         w:32, h:32, d:0, f:0.2, r:0.2, dm:0
     },
     {
-        id:8, src:'log32l',
+        id:8, pid:9, src:'log32l',
         s:1, t:C.ASSETS.BLOCK,
         w:32, h:32, d:0, f:0.2, r:0.2, dm:8
     },
     {
-        id:9, src:'log32',
+        id:9, pid:9,src:'log32',
         s:1, t:C.ASSETS.BLOCK,
         w:32, h:32, d:0, f:0.2, r:0.2, dm:8
     },
     {
-        id:10, src:'log32r',
+        id:10, pid:9,src:'log32r',
         s:1, t:C.ASSETS.BLOCK,
         w:32, h:32, d:0, f:0.2, r:0.2, dm:8
     },

@@ -87,6 +87,7 @@ class Render{
 
     Plane(x, y, pts, col, sz)
     {
+        this.ctx.strokeStyle = 'red';
         this.ctx.fillStyle = col;
         this.ctx.beginPath();
         var pt = {x:pts[0]*sz, y:pts[1]*sz};
@@ -105,6 +106,7 @@ class Render{
 
         this.ctx.closePath();
         this.ctx.fill();
+        this.ctx.stroke();
     }
 
     SpritePrimitive(x, y, poly, col, size)

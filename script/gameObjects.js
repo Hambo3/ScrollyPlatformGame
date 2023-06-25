@@ -177,6 +177,7 @@ class GameObject extends RigidShape{
         this.spriteId;
         this.body;
         this.damage = 0;
+        this.breakPoint = 0;
         this.collidedWith = [];
 
         this.col = ["#a61","#e92","#fa3"];
@@ -184,6 +185,9 @@ class GameObject extends RigidShape{
 
     Update(dt, ci)
     {   
+        if(this.C.y > MAP.mapSize.y || GAME.IsLeftBehind(this.C.x)){
+            this.enabled = 0;
+        }
         if(this.damage > 0 && ci.length != 0){ 
             for (var i = 0; i < ci.length; i++) {
                 var perp = ci[i].P1 != this ? ci[i].P1 : ci[i].P2;
@@ -227,7 +231,7 @@ class StaticBody extends GameObject{
         this.deadly = 0;
         this.isStatic = 1;        
         this.damage = dmg|0;
-
+        
         this.tiles = tiles;        
     }
 
@@ -258,10 +262,14 @@ class Circle extends GameObject{
         this.spriteId = sprId;
         this.body = GAMEOBJ.find(o=>o.id == sprId).src;
         this.damage = dmg;
+        this.breakPoint = this.damage /2;
     }
 
     Update(dt, ci)
     {   
+        if(this.damage < this.breakPoint){
+            this.frame=1;
+        }
         super.Update(dt, ci);
     }
 
@@ -282,10 +290,14 @@ class Rectangle extends GameObject{
         this.spriteId = sprId;
         this.body = GAMEOBJ.find(o=>o.id == sprId).src;
         this.damage = dmg;
+        this.breakPoint = this.damage /2;
     }
 
     Update(dt, ci)
     {
+        if(this.damage < this.breakPoint){
+            this.frame=1;
+        }
         super.Update(dt, ci);
     }
 
@@ -341,7 +353,6 @@ class Player extends GameObject{
 
         if(this.input.Fire1()){
             GAME.AddObject(this.C.x, this.C.y, new Vector2(32,-40));
-            //GAME.ParticleGen(this.C.Clone(), 3, this.col, 5);
         }
 
         if(ci.length != 0){
@@ -383,7 +394,7 @@ class Shot extends GameObject{
 
 class Chaser {
 
-    constructor(target, offset)
+    constructor(target, offset, stop, behind, speed)
     {        
         this.target = target;
         this.pos = new Vector2(0,0);
@@ -391,16 +402,26 @@ class Chaser {
         this.timer = new Timer(2);
         this.velocityMin = [32,48];
         this.rate = 1;
-
+        this.stop = stop;
+        this.behind = behind;
         this.enabled = 1;
         this.type = C.ASSETS.NONE;
+        this.speed = speed || 60;
+    }
+
+    get Behind(){
+        return this.pos.x - this.behind;
     }
 
     Update(dt)
-    {   var p = MAP.Pos;
-        this.pos.x+=60*dt;
+    {   
+        if(this.pos.x < this.stop){            
+            this.pos.x += this.speed*dt;            
+        }
+
         this.timer.Update(dt);
 
+        var p = MAP.Pos;
         if(!this.timer.enabled){
             GAME.Launch(Util.RndI(p.l+64, p.r-64), 0, 
                 new Vector2(Util.RndI(-32, 32),0)

@@ -158,19 +158,15 @@ var Util = {
             var sp = 0;
             for (var c = 0; c < m[r].length; c++) {
                 sp = GAMEOBJ[m[r][c]];
-                if(sp.s)
-                {
+                if(sp.s && (sp.pid == last.pid || !last.s)){
                     l++;
                 }
-                else
-                {                    
-                    if(last.s)
-                    {
-                        objs.push({x:c-l,y:r,w:l,s:sp.id,d:last.dm});
+                else{
+                    if(l){
+                        objs.push({x:c-l,y:r,w:l,s:last.id,d:last.dm});
                     }
-                    l = 0;
+                    l=sp.s?1:0;
                 }
-
                 last = sp;
             }
             if(l > 0){
@@ -236,9 +232,7 @@ var ObjectPool = function () {
                 return list.filter(l => l.enabled);
             }
         },
-        // GetCollectable: function(){
-        //     return list.filter(l => l.enabled && l.collectable);
-        // },
+
         Count: function(all, type){
             if(type){
                 return (all) ? list.filter(l => type.indexOf(l.type) != -1).length 
