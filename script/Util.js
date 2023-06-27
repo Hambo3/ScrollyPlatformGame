@@ -35,9 +35,9 @@ var EasingFunctions = {
 
 
 var Util = {
-    PercentChance: function(p){
-        return Util.RndI(0,100) < p;
-    },
+    // PercentChance: function(p){
+    //     return Util.RndI(0,100) < p;
+    // },
     OneIn: function(c){
         return Util.RndI(0,c)==0;
     },
@@ -46,6 +46,13 @@ var Util = {
     },
     Clamp: function(v, min, max){        
         return Util.Min(Util.Max(v, min), max);
+    }, 
+    Min: function(a, b)
+    {
+        return (a<b)? a : b;
+    },
+    Max: function(a, b){
+        return (a>b)? a : b;
     },
     Lerp: function(start, end, amt)
     {
@@ -67,89 +74,83 @@ var Util = {
     Rnd: function (max){
         return Math.random() * max;
     }, 
-    Min: function(a, b)
-    {
-        return (a<b)? a : b;
-    },
-    Max: function(a, b){
-        return (a>b)? a : b;
-    },
-    Randomise: function(arr, index)
-    {
-        var i = index || 0;
-        return arr.slice(0, i).concat(arr.slice(i).sort(() => Math.random() - 0.5));
-    },
-    // Converts from degrees to radians.
-    Radians: function(degrees) {
-        return degrees * Math.PI / 180;
-    },    
-    // Converts from radians to degrees.
-    Degrees: function(radians) {
-        return radians * 180 / Math.PI;
-    }, 
-    AngleToTarget: function(prot, perp) {
-        var angle = Math.atan2(perp.x - prot.x, perp.y - prot.y);
-        angle = angle * 360 / (2*Math.PI);
-        if(angle < 0) {
-            angle += 360;
-        }
-        return angle;
-    }, 
-    PointAngle: function(radius, angle){
-        var r = Util.Radians(angle);
-        return {x: Math.sin(r) * radius,
-                y: Math.cos(r) * radius};
-    },
-    Wave: function(a,w,x,y){
-        //var yp = Wave(20, 0.05, x, y);
-        return a * Math.sin(w * x) + y;
-    },
-    SetRotation: function(dir, val){
-        dir += val;
-        if(dir > 359){
-            dir -= 359;
-        }
-        if(dir < 0){
-            dir += 359;
-        }
 
-        return dir;
-    },
+    // Randomise: function(arr, index)
+    // {
+    //     var i = index || 0;
+    //     return arr.slice(0, i).concat(arr.slice(i).sort(() => Math.random() - 0.5));
+    // },
+    // Converts from degrees to radians.
+    // Radians: function(degrees) {
+    //     return degrees * Math.PI / 180;
+    // },    
+    // // Converts from radians to degrees.
+    // Degrees: function(radians) {
+    //     return radians * 180 / Math.PI;
+    // }, 
+    // AngleToTarget: function(prot, perp) {
+    //     var angle = Math.atan2(perp.x - prot.x, perp.y - prot.y);
+    //     angle = angle * 360 / (2*Math.PI);
+    //     if(angle < 0) {
+    //         angle += 360;
+    //     }
+    //     return angle;
+    // }, 
+    // PointAngle: function(radius, angle){
+    //     var r = Util.Radians(angle);
+    //     return {x: Math.sin(r) * radius,
+    //             y: Math.cos(r) * radius};
+    // },
+    // Wave: function(a,w,x,y){
+    //     //var yp = Wave(20, 0.05, x, y);
+    //     return a * Math.sin(w * x) + y;
+    // },
+    // SetRotation: function(dir, val){
+    //     dir += val;
+    //     if(dir > 359){
+    //         dir -= 359;
+    //     }
+    //     if(dir < 0){
+    //         dir += 359;
+    //     }
+
+    //     return dir;
+    // },
     Context: function(w, h){
         var canvas = document.createElement('canvas');
         canvas.width = w;
 		canvas.height = h;
         return {ctx:canvas.getContext('2d'), canvas:canvas};
     },
-    TxtLen: function(txt, sz, c){
-        return (c) ? (txt.length*(sz*4.5))/2 : txt.length*(sz*4.5);
-    },
-    UnpackMap: function(zip){
-        var map = [];
-        var v, pts;
-        var sec = zip.split("|");
-        for(var i = 0; i < sec.length; i++){
-            pts= sec[i].split(",");
-            v = parseInt(pts[0]);
-            map.push(v);
-            if(pts.length > 1){                
-                for(var p = 1; p < pts[1]; p++){
-                    map.push(v);
-                }
-            }
-        }
+    // TxtLen: function(txt, sz, c){
+    //     return (c) ? (txt.length*(sz*4.5))/2 : txt.length*(sz*4.5);
+    // },
+    // UnpackMap: function(zip){
+    //     var map = [];
+    //     var v, pts;
+    //     var sec = zip.split("|");
+    //     for(var i = 0; i < sec.length; i++){
+    //         pts= sec[i].split(",");
+    //         v = parseInt(pts[0]);
+    //         map.push(v);
+    //         if(pts.length > 1){                
+    //             for(var p = 1; p < pts[1]; p++){
+    //                 map.push(v);
+    //             }
+    //         }
+    //     }
 
-        var mapArr = [];
-        var row = [];        
-        for (var i = 0; i < map.length; i++) {
-            row.push(map[i]);
-            if((i+1)%37==0){
-                mapArr.push(row);
-                row=[];
-            }
-        }
-        return mapArr;
-    },
+    //     var mapArr = [];
+    //     var row = [];        
+    //     for (var i = 0; i < map.length; i++) {
+    //         row.push(map[i]);
+    //         if((i+1)%37==0){
+    //             mapArr.push(row);
+    //             row=[];
+    //         }
+    //     }
+    //     return mapArr;
+    // },
     UnpackWorldObjects: function(m){
         var objs = [];
         for (var r = 0; r < m.length; r++) {
@@ -163,14 +164,14 @@ var Util = {
                 }
                 else{
                     if(l){
-                        objs.push({x:c-l,y:r,w:l,s:last.id,d:last.dm});
+                        objs.push({x:c-l,y:r,w:l,s:last.pid,d:last.dm});
                     }
                     l=sp.s?1:0;
                 }
                 last = sp;
             }
             if(l > 0){
-                objs.push({x:c-l,y:r,w:l,s:sp.id,d:sp.dm});
+                objs.push({x:c-l,y:r,w:l,s:sp.pid,d:sp.dm});
             }            
         }
 

@@ -14,31 +14,20 @@ class Blocky{
             new Vector2(2.5*32, (MAP.planSize.y-7)*32), 32, 32, 2, 0, 0);
         this.gameObjects.Add(this.plr);  
 
-        // this.gameObjects.Add(
-        //     new StaticBody([],C.ASSETS.GROUND, 
-        //         new Vector2((MAP.planSize.x/2)*32, (MAP.planSize.y*32)+16), 
-        //                     MAP.planSize.x*32, 32, 0, 0.2, .2)
-        //     );
-
         var mapData = this.CreateMap(MAP.planSize.x, MAP.planSize.y);
-        var levelData = this.CreateMap(MAP.planSize.x, MAP.planSize.y);
+        var levelData = [];
+        this.CreateMapRows(levelData,MAP.planSize.x,0,MAP.planSize.y,0)
 
         //this.CreateLevel(mapData, -18, MAP.planSize.x, MAP.planSize.y);
 
         this.CreateLevel(mapData, levelData, -12, MAP.planSize.x, MAP.planSize.y);
 
-        //this.DebugCreateLevel        
+        //this.DebugCreateLevel
         this.CreateLevel
                 (mapData, levelData, -6, MAP.planSize.x, MAP.planSize.y);
 
         MAP.Init(true, mapData, levelData);
 
-        // levelData[0][3] = 7;
-        // levelData[0][4] = 7;
-        // levelData[0][5] = 7;
-        // levelData[0][6] = 9;
-        // levelData[0][7] = 9;
-        // levelData[0][8] = 9;
         var blocks = Util.UnpackWorldObjects(levelData);
 
         for (var i = 0; i < blocks.length; i++) 
@@ -55,20 +44,26 @@ class Blocky{
         this.gameObjects.Add(this.chaser);
     }
 
-    CreateMap(w, h){
-        var map = [];    
-        for (let r=0; r<h; r++){
-            var a = new Array(w); for (let i=0; i<w; i++) a[i] = 0;
+    CreateMapRows(map,w,s,e,t){
+        for (let r=s; r<e; r++){
+            var a = new Array(w); 
+            for (let i=0; i<w; i++) a[i] = t;
             map.push(a);
         }
+    }
+    CreateMap(w, h){
+        var map = [];   
+        this.CreateMapRows(map,w,0,12,0);
+        this.CreateMapRows(map,w,12,h,1);
         return map;
     }
 
-    DebugCreateLevel(map, l, w, h){
+    DebugCreateLevel(map, lvl, l, w, h){
         
         var y = h+l;
         var t = 0;
-        var x=this.Section(map, y, 0, 7, h, 18);       
+        var x=this.Section(map, lvl, y, 0, 7, h, 18);       
+        x=this.Section(map, lvl, y, x, 9, h, 18);  
     }
 
     CreateLevel(map, lvl, l, w, h){        
@@ -99,7 +94,7 @@ class Blocky{
                         t==9 && r==n-1 ? t+1 :  //ends
                         t;
             for (let c=y+1; c<h; c++){ 
-                map[c][x] = t==0?0:1;
+                map[c][x] = t==0?map[c][x]:2;
             }
             x++;
         }
@@ -130,9 +125,15 @@ class Blocky{
         this.gameObjects.Add(d);
     }
 
-    ParticleGen(pos, n, cols, sz)
+    ParticleGen(pos, n, cl, sz)
     {        
+        var cols = [];
+        cl.forEach(c => {
+            cols.push(DEFS.spritePal[c]);
+        });
+
         var s = sz || 2;
+        var s2 = s*2;
         var ln = cols.length;
         for (var i = 0; i < n*4; i++) {
             var b = this.particles.Is(0);
@@ -141,14 +142,17 @@ class Blocky{
                 b = new Particle(pos.Clone());
                 this.particles.Add(b);
             }
-            var l = Util.RndI(0,ln);
+            var l = Util.RndI(1,ln);
+            var lb = 0;
             b.pos = pos.Clone();
             b.body = [
-                [0,[-s,s, -s,-s, s,-s, s,s]]
+                //[0,[-s,s, -s,-s, s,-s, s,s]],
+                [0,[-s2,-s, s2,-s, 0,s]]
             ];
             b.enabled = 1;
             b.op = 1;
             b.rgb = cols[l] instanceof Object ? cols[l] : new Color(cols[l]);
+            b.bRgb = cols[lb] instanceof Object ? cols[lb] : new Color(cols[lb]);
 
             var sp = 4 + (parseInt(i/4)*4);
             b.speed = Util.RndI(sp, sp+4);

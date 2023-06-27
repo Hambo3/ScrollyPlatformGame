@@ -180,12 +180,12 @@ class GameObject extends RigidShape{
         this.breakPoint = 0;
         this.collidedWith = [];
 
-        this.col = ["#a61","#e92","#fa3"];
+        this.col = null;
     }
 
     Update(dt, ci)
     {   
-        if(this.C.y > MAP.mapSize.y || GAME.IsLeftBehind(this.C.x)){
+        if(!this.isStatic && (this.C.y > MAP.mapSize.y || GAME.IsLeftBehind(this.C.x))){
             this.enabled = 0;
         }
         if(this.damage > 0 && ci.length != 0){ 
@@ -199,13 +199,15 @@ class GameObject extends RigidShape{
                         this.damage -= C.I;
                         if(this.damage <= 0){
                             this.enabled = 0;
-                            GAME.ParticleGen(this.C.Clone(), 3, this.col, 5);
+                            if(this.col){
+                                GAME.ParticleGen(this.C.Clone(), 3, this.col, 5);
+                            }
                         }
 
                     }                      
                 } 
             }
-        }
+        }        
     }
 
     get Body() {
@@ -239,9 +241,11 @@ class StaticBody extends GameObject{
     {
         super.Update(dt, ci);
 
-        if(!this.enabled){        
+        if(!this.enabled){       
+            console.log("!") ;
             MAP.Tile(this.tiles);
             GAME.PlatformBreak(this.tiles);
+            //particles??
         }
     }
 
@@ -253,7 +257,7 @@ class StaticBody extends GameObject{
 
 class Circle extends GameObject{
 
-    constructor(type, sprId, center, radius, mass, friction, restitution, dmg)
+    constructor(type, sprId, center, radius, mass, friction, restitution, dmg, col)
     {        
         super(center, mass, friction, restitution, 0 ,radius);
         this.enabled = 1;
@@ -263,6 +267,7 @@ class Circle extends GameObject{
         this.body = GAMEOBJ.find(o=>o.id == sprId).src;
         this.damage = dmg;
         this.breakPoint = this.damage /2;
+        this.col = col;
     }
 
     Update(dt, ci)
@@ -281,7 +286,7 @@ class Circle extends GameObject{
 
 class Rectangle extends GameObject{
 
-    constructor(type, sprId, center, width, height, mass, friction, restitution, dmg)
+    constructor(type, sprId, center, width, height, mass, friction, restitution, dmg, col)
     {        
         super(center, mass, friction, restitution, 1, Math.hypot(width, height)/2, width, height);
         this.enabled = 1;       
@@ -291,6 +296,7 @@ class Rectangle extends GameObject{
         this.body = GAMEOBJ.find(o=>o.id == sprId).src;
         this.damage = dmg;
         this.breakPoint = this.damage /2;
+        this.col = col;
     }
 
     Update(dt, ci)
@@ -372,10 +378,13 @@ class Player extends GameObject{
 
 class Shot extends GameObject{
 
-    constructor( center)
+    constructor(center)
     {        
-        super(center, 6, 0.8, 0.8, 0 ,8);   
+        var obj = GAMEOBJ.find(o=>o.id == 15);
+        super(center, obj.d, obj.f, obj.r, 0 ,obj.w/2);   
 
+        this.damage = obj.dm;
+        this.col = obj.col;
         this.type = C.ASSETS.SHOT;
         this.spriteId = 15;
         this.body = GAMEOBJ.find(o=>o.id == this.spriteId).src;
@@ -448,8 +457,11 @@ class Particle{
         this.damping = 0.8;
         this.speed = 0;
         this.body;
-
+        this.rgb;
+        this.bRgb;
         this.motion = 0;
+        this.rot = 0
+        this.rots = Util.Rnd(0.1)-0.05;
     }
 
     Body(){
@@ -464,6 +476,8 @@ class Particle{
                 this.op-=0.01;
                 this.rgb.a = this.op;
                 this.col = [this.rgb.RGBA()];
+                this.bRgb.a = this.op;
+                this.bcol = [this.bRgb.RGBA()];
                 if(this.op<=0){
                     this.enabled = 0;
                 }             
@@ -473,13 +487,14 @@ class Particle{
 
             // apply physics
             this.velocity.Multiply(this.damping);
+            this.rot += this.rots;
         }
     }
 
     Render(x,y){
         if(this.enabled){
-            GFX.SpritePrimitive(this.pos.x-x, this.pos.y-y, 
-                this.Body(), this.col, this.size);
+            GFX.SpritePoly(this.pos.x-x, this.pos.y-y, 
+                this.Body(), this.col, this.size, this.rot, this.bcol);
         }
     }
 }

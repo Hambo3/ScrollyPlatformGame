@@ -77,43 +77,51 @@ class Render{
         return Math.round(p);
     }
 
-    Poly(x, y, poly, col, size)
-    {
-        for(var i = 0; i < poly.length; i+=2) 
-        {
-            this.Plane(x, y, poly[i+1],  col[poly[i]],  size);
-        } 
-    }
+    // Poly(x, y, poly, col, size)
+    // {
+    //     for(var i = 0; i < poly.length; i+=2) 
+    //     {
+    //         this.Plane(x, y, poly[i+1],  col[poly[i]],  size);
+    //     } 
+    // }
 
-    Plane(x, y, pts, col, sz)
+    Plane(x, y, pts, col, sz, angle, bcol)
     {
-        this.ctx.strokeStyle = 'red';
+        if(bcol){
+            this.ctx.strokeStyle = bcol;
+        }
+        this.ctx.save();
+        this.ctx.translate(this.PT(x), this.PT(y));
+        this.ctx.rotate(angle);  
+
         this.ctx.fillStyle = col;
         this.ctx.beginPath();
         var pt = {x:pts[0]*sz, y:pts[1]*sz};
         this.ctx.moveTo(
-            this.PT(pt.x  + x), 
-            this.PT(pt.y + y)
+            this.PT(pt.x), 
+            this.PT(pt.y)
             );
 
         for(var p = 2; p < pts.length; p+=2) {
             pt = {x:pts[p]*sz, y:pts[p+1]*sz};
             this.ctx.lineTo(
-                this.PT(pt.x + x), 
-                this.PT(pt.y + y)
+                this.PT(pt.x), 
+                this.PT(pt.y)
                 ); 
         }
 
         this.ctx.closePath();
         this.ctx.fill();
         this.ctx.stroke();
+
+        this.ctx.restore();
     }
 
-    SpritePrimitive(x, y, poly, col, size)
+    SpritePoly(x, y, poly, col, size, angle, bcol)
     {
         for(var i = 0; i < poly.length; i+=2) 
         {
-            this.Plane(x, y, poly[i+1],  col[poly[i]],  size);
+            this.Plane(x, y, poly[i+1],  col[poly[i]],  size, angle, bcol);
         } 
     }
 
@@ -140,27 +148,27 @@ class Render{
         this.ctx.restore();
     }
 
-    Tile(x, y, sprite, scale){
-        var dim = sprite.dim;  
+    // Tile(x, y, sprite, scale){
+    //     var dim = sprite.dim;  
 
-        this.ctx.save();
-        this.ctx.translate(this.PT(x), this.PT(y));
-        if(sprite.pos.m){
-            this.ctx.scale(-1,1);
-        }
-        this.ctx.drawImage(sprite.img, sprite.pos.x, sprite.pos.y, dim.w, dim.h,
-            -((dim.w* scale)/2), -((dim.h* scale)/2), dim.w * scale, dim.h * scale);
-        this.ctx.restore();    
-    }
+    //     this.ctx.save();
+    //     this.ctx.translate(this.PT(x), this.PT(y));
+    //     if(sprite.pos.m){
+    //         this.ctx.scale(-1,1);
+    //     }
+    //     this.ctx.drawImage(sprite.img, sprite.pos.x, sprite.pos.y, dim.w, dim.h,
+    //         -((dim.w* scale)/2), -((dim.h* scale)/2), dim.w * scale, dim.h * scale);
+    //     this.ctx.restore();    
+    // }
 
-    Image(img, pos, size, src, clip, op){
-        this.ctx.drawImage
-        (
-            img, 
-            src.x, src.y, clip.x, clip.y,
-            pos.x, pos.y, size.x, size.y
-        );
-    }
+    // Image(img, pos, size, src, clip, op){
+    //     this.ctx.drawImage
+    //     (
+    //         img, 
+    //         src.x, src.y, clip.x, clip.y,
+    //         pos.x, pos.y, size.x, size.y
+    //     );
+    // }
 
     Box(x,y,w,h,c){
         this.ctx.fillStyle = c || '#000000';
