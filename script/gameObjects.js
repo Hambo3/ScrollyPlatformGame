@@ -371,8 +371,6 @@ class Player extends GameObject{
     Render(x,y)
     {
         super.Render(x,y);
-        DEBUG.Print("L:", this.V.Length());   
-        DEBUG.Print("D:", this.damage);     
     }
 }
 
@@ -403,9 +401,8 @@ class Shot extends GameObject{
 
 class Chaser {
 
-    constructor(target, offset, stop, behind, speed)
+    constructor(offset, stop, behind, speed)
     {        
-        this.target = target;
         this.pos = new Vector2(0,0);
         this.offset = offset;
         this.timer = new Timer(2);

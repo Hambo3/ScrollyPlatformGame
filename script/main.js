@@ -23,8 +23,6 @@ var slowMo = 1;
 var step = 1 / fps;
 var sStep = slowMo * step;
 
-var DEBUG;
-
 var GAME;
 var GFX;
 var SFX;
@@ -35,8 +33,6 @@ var PHYSICS = new World();
 var canvas;
 
 var IsTouchDevice = window.ontouchstart !== undefined;
-
-
 		
 var map = {
 	set:"tile",
@@ -69,8 +65,6 @@ function Start(canvasBody)
 		else{
 			MAP.maxScale = map.size.world.height/map.size.screen.height;
 		}
-
-		DEBUG = new DebugEdit(MAP.screenCtx, 400, 600 ,'#fff', 5);
 
 		//offscreen renderer
 		GFX = new Render(MAP.osCanvas.ctx);	
@@ -138,7 +132,7 @@ function init()
 {  
 	lastTime = 0;
 
-	GAME = new Blocky(canvas, map.objects);
+	GAME = new Blocky(canvas);
 
 	FixedLoop();  
 }
@@ -149,30 +143,23 @@ function SlowMo(mo){
 
 function FixedLoop(){
 	if(Input.IsSingle('Escape') ) {
-
+		GAME = new Blocky(canvas);
+		//GAME.Quit();
 	}
 
-//debug	
-if(Input.IsSingle('KeyY') ) {
-	slowMo+=1;
-	SlowMo(slowMo);		
-}
-else if(Input.IsSingle('KeyT') ) {
-	if(slowMo-1 > 0){
-		slowMo-=1;
-		SlowMo(slowMo);
-	}
-}
+//DEBUG
+// if(Input.IsSingle('y') ) {
+// 	slowMo+=1;
+// 	SlowMo(slowMo);		
+// }
+// else if(Input.IsSingle('t') ) {
+// 	if(slowMo-1 > 0){
+// 		slowMo-=1;
+// 		SlowMo(slowMo);
+// 	}
+// }
+//DEBUG
 
-// if(Input.IsDown('KeyX') ) {
-// 	MAP.Zoom(0.01);
-// 	GAME.offset = MAP.ScrollTo(new Vector2(17.5*32,13.5*32), 0.01);
-// }
-// else if(Input.IsDown('KeyZ') ) {
-// 	MAP.Zoom(-0.01);
-// 	GAME.offset = MAP.ScrollTo(new Vector2(17.5*32,13.5*32), 0.01);
-// }
-//debug		
 	now = timestamp();
 	dt = dt + Math.min(1, (now - lastTime) / 1000);
 	while (dt > sStep) {
@@ -198,8 +185,6 @@ function update(dt) {
 
 function render() {
 	GAME.Render();
-
-	DEBUG.Render(true,true);
 };
 
 onkeydown = function(e)

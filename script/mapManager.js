@@ -22,8 +22,8 @@ class MapManger{
         this.tileCanvas = Util.Context(this.mapSize.x, this.mapSize.y);
         this.osCanvas = Util.Context(this.mapSize.x, this.mapSize.y);
 
-        this.screenCtx.imageSmoothingEnabled = false;        
-        this.osCanvas.imageSmoothingEnabled = false;
+        this.screenCtx.imageSmoothingEnabled = true;        
+        this.osCanvas.imageSmoothingEnabled = true;
         this.rend = new Render(this.tileCanvas.ctx);
     }
 

@@ -77,14 +77,6 @@ class Render{
         return Math.round(p);
     }
 
-    // Poly(x, y, poly, col, size)
-    // {
-    //     for(var i = 0; i < poly.length; i+=2) 
-    //     {
-    //         this.Plane(x, y, poly[i+1],  col[poly[i]],  size);
-    //     } 
-    // }
-
     Plane(x, y, pts, col, sz, angle, bcol)
     {
         if(bcol){
@@ -131,10 +123,7 @@ class Render{
         this.ctx.save();
         this.ctx.translate(this.PT(x), this.PT(y));
         this.ctx.rotate(angle);  
-        // this.ctx.shadowColor = '#222';
-        // this.ctx.shadowBlur = 10;
-        // this.ctx.shadowOffsetX = 10;
-        // this.ctx.shadowOffsetY = 10;
+
         if(sprite.pos.m){
             this.ctx.scale(-1,1);
         }
@@ -147,28 +136,6 @@ class Render{
             -((dim.w* scale)/2), -((dim.h* scale)/2), dim.w * scale, dim.h * scale);
         this.ctx.restore();
     }
-
-    // Tile(x, y, sprite, scale){
-    //     var dim = sprite.dim;  
-
-    //     this.ctx.save();
-    //     this.ctx.translate(this.PT(x), this.PT(y));
-    //     if(sprite.pos.m){
-    //         this.ctx.scale(-1,1);
-    //     }
-    //     this.ctx.drawImage(sprite.img, sprite.pos.x, sprite.pos.y, dim.w, dim.h,
-    //         -((dim.w* scale)/2), -((dim.h* scale)/2), dim.w * scale, dim.h * scale);
-    //     this.ctx.restore();    
-    // }
-
-    // Image(img, pos, size, src, clip, op){
-    //     this.ctx.drawImage
-    //     (
-    //         img, 
-    //         src.x, src.y, clip.x, clip.y,
-    //         pos.x, pos.y, size.x, size.y
-    //     );
-    // }
 
     Box(x,y,w,h,c){
         this.ctx.fillStyle = c || '#000000';

@@ -1,46 +1,33 @@
-class Blocky{
+class Blocky{//TBA
 
     constructor(canvas, objects)
     {
+        this.gameTimer = null;
+        this.gameMode = C.GAMEMODE.TITLE;
+        this.level = 0;
         this.offset;
-
         this.gameObjects = new ObjectPool();
         this.particles = new ObjectPool(); 
     
         // Gravity
         this.mGravity = new Vector2(0, 100);
 
-        this.plr = new Player( Input,
-            new Vector2(2.5*32, (MAP.planSize.y-7)*32), 32, 32, 2, 0, 0);
-        this.gameObjects.Add(this.plr);  
+        this.plr = null;  
 
         var mapData = this.CreateMap(MAP.planSize.x, MAP.planSize.y);
         var levelData = [];
         this.CreateMapRows(levelData,MAP.planSize.x,0,MAP.planSize.y,0)
-
-        //this.CreateLevel(mapData, -18, MAP.planSize.x, MAP.planSize.y);
-
-        this.CreateLevel(mapData, levelData, -12, MAP.planSize.x, MAP.planSize.y);
-
-        //this.DebugCreateLevel
-        this.CreateLevel
-                (mapData, levelData, -6, MAP.planSize.x, MAP.planSize.y);
+        this.DebugCreateLevel(mapData, levelData, -6, MAP.planSize.x, MAP.planSize.y);
 
         MAP.Init(true, mapData, levelData);
 
-        var blocks = Util.UnpackWorldObjects(levelData);
+        this.plr = new Player( Input,
+            new Vector2(2.5*32, (MAP.planSize.y-7)*32), 32, 32, 2, 0, 0);
+        this.gameObjects.Add(this.plr);
+        this.plr.enabled = 0;
 
-        for (var i = 0; i < blocks.length; i++) 
-        {
-            var b = blocks[i];
-            var w = b.w*32;
-            var s = new StaticBody(b, C.ASSETS.PLATFORM, 
-                new Vector2((b.x*32)+w/2, (b.y*32)+16), w, 32, 0, 0.2, .2, b.d); 
-            this.gameObjects.Add(s);
-        }
-
-        this.chaser = new Chaser(this.plr, 
-            new Vector2(-400,-100), MAP.mapSize.x - (MAP.screenSize.x/2), MAP.screenSize.x*MAP.maxScale, 60);
+        this.chaser = new Chaser(new Vector2(-400,-100), 
+            MAP.mapSize.x - (MAP.screenSize.x/2), MAP.screenSize.x*MAP.maxScale, 60);
         this.gameObjects.Add(this.chaser);
     }
 
@@ -165,48 +152,115 @@ class Blocky{
         return x < this.chaser.Behind;
     }
 
+    Start(){
+        this.gameTimer = new Timer(0);
+        this.gameObjects.Clear();
+        var mapData = this.CreateMap(MAP.planSize.x, MAP.planSize.y);
+        var levelData = [];
+        this.CreateMapRows(levelData,MAP.planSize.x,0,MAP.planSize.y,0)
+
+        //this.CreateLevel(mapData, -18, MAP.planSize.x, MAP.planSize.y);
+        //this.CreateLevel(mapData, levelData, -12, MAP.planSize.x, MAP.planSize.y);
+        this.CreateLevel(mapData, levelData, -6, MAP.planSize.x, MAP.planSize.y);
+
+        //this.DebugCreateLevel(mapData, levelData, -6, MAP.planSize.x, MAP.planSize.y);
+
+        MAP.Init(true, mapData, levelData);
+
+        var blocks = Util.UnpackWorldObjects(levelData);
+
+        for (var i = 0; i < blocks.length; i++) 
+        {
+            var b = blocks[i];
+            var w = b.w*32;
+            var s = new StaticBody(b, C.ASSETS.PLATFORM, 
+                new Vector2((b.x*32)+w/2, (b.y*32)+16), w, 32, 0, 0.2, .2, b.d); 
+            this.gameObjects.Add(s);
+        }
+
+        this.plr = new Player( Input,
+            new Vector2(2.5*32, (MAP.planSize.y-7)*32), 32, 32, 2, 0, 0);
+        this.gameObjects.Add(this.plr);
+        this.plr.enabled = 0;
+
+        this.chaser = new Chaser(new Vector2(-400,-100), 
+            MAP.mapSize.x - (MAP.screenSize.x/2), MAP.screenSize.x*MAP.maxScale, 60);
+        this.gameObjects.Add(this.chaser);
+
+        this.gameMode = C.GAMEMODE.GAME;
+        this.plr.enabled = 1;
+        this.level = 1;
+    } 
+    LevelEnd(){
+        this.gameMode = C.GAMEMODE.LEVELEND;
+    }
+    GameOver(){
+        this.gameMode = C.GAMEMODE.GAMEOVER;
+        this.gameTimer = new Timer(4);
+    }
+    Quit(){
+        //this.gameObjects.Clear();
+        this.gameMode = C.GAMEMODE.TITLE;
+        this.plr.enabled = 0;
+    }
+
     Update(dt)
     {   
-        //TODO stop chaser at end??
-        if(this.plr.C.x < (this.chaser.pos.x-340) && MAP.scale < MAP.maxScale){
-            MAP.Zoom(0.001);
-        }
-        else if(MAP.scale > 1){
-            MAP.Zoom(-0.001);
-        }
         this.offset = MAP.ScrollTo(new Vector2(
             this.plr.C.x > this.chaser.pos.x ? this.plr.C.x : this.chaser.pos.x, 
             this.plr.C.y));
-        //this.offset = MAP.ScrollTo(new Vector2(this.plr.C.x, this.plr.C.y));
 
-        if(Input.IsDown('x') ) {
-            MAP.Zoom(0.01);
-        }
-        else if(Input.IsDown('z') ) {
-            MAP.Zoom(-0.01);
-        }
+        if(this.gameMode == C.GAMEMODE.TITLE){
+            if(Input.Fire1()){
+                this.Start();
+            }
+        }else if(this.gameMode == C.GAMEMODE.LEVELEND){
+            if(Input.Fire1()){
+                this.Start();
+            }
+        }else if(this.gameMode == C.GAMEMODE.GAME || this.gameMode == C.GAMEMODE.GAMEOVER){
+            if(this.plr.C.x < (this.chaser.pos.x-340) && MAP.scale < MAP.maxScale){
+                MAP.Zoom(0.001);
+            }
+            else if(MAP.scale > 1){
+                MAP.Zoom(-0.001);
+            }
 
-        var objects = this.gameObjects.Get();
+            //this.offset = MAP.ScrollTo(new Vector2(this.plr.C.x, this.plr.C.y));
 
-        // Compute collisions
-        var p = this.gameObjects.Get([C.ASSETS.NONE],1);
-        var clx = PHYSICS.Update(p, dt);
+            var objects = this.gameObjects.Get();
 
-        for (var i = 0; i < objects.length; i++) {
-            var ci = clx.filter(c=>c.P1 == objects[i] || c.P2 == objects[i]);
-            objects[i].Update(dt, ci);
-        }
+            // Compute collisions
+            var p = this.gameObjects.Get([C.ASSETS.NONE],1);
+            var clx = PHYSICS.Update(p, dt);
 
-        var p = this.particles.Get();
+            for (var i = 0; i < objects.length; i++) {
+                var ci = clx.filter(c=>c.P1 == objects[i] || c.P2 == objects[i]);
+                objects[i].Update(dt, ci);
+            }
 
-        for (var i = 0; i < p.length; i++) {
-            p[i].Update(dt);
+            var p = this.particles.Get();
+
+            for (var i = 0; i < p.length; i++) {
+                p[i].Update(dt);
+            }
+
+            if(this.plr.C.x > MAP.mapSize.x - 200){
+                this.LevelEnd();
+            }
+            if(this.gameMode == C.GAMEMODE.GAME && !this.plr.enabled){
+                this.GameOver();
+            }
+            if(this.gameMode == C.GAMEMODE.GAMEOVER){
+                if(this.gameTimer.Update(dt)){
+                    this.Quit();
+                }            
+            }
         }
     }
 
     Render()
     {
-
         MAP.PreRender();
 
         //render objects
@@ -222,14 +276,19 @@ class Blocky{
 
         MAP.PostRender();
   
-        Input.Render();
+        if(this.gameMode == C.GAMEMODE.TITLE){
+            //SFX.Box(0,0,800,600, "rgba(100,173,217,0.6)");
+            SFX.Text("TONY",240,100,16,1); 
+            SFX.Text("FIRE TO START",300,240,4); 
+        }else if(this.gameMode == C.GAMEMODE.LEVELEND){
+            //SFX.Box(0,0,800,600, "rgba(100,173,217,0.6)");
+            SFX.Text("YOUR A REAL HERO NOW",100,100,8,1); 
+            SFX.Text("FIRE TO CONTINUE",300,240,4); 
+        }else if(this.gameMode == C.GAMEMODE.GAMEOVER){
+            //SFX.Box(0,0,800,600, "rgba(100,173,217,0.6)");
+            SFX.Text("GAME OVER",200,100,8,1);   
+        }
 
-        DEBUG.Print("MinZ:",MAP.minScale);
-        DEBUG.Print("MaxZ:",MAP.maxScale);
-        DEBUG.Print("Z:",MAP.scale);
-        DEBUG.Print("PX:",this.plr.C.x);
-        DEBUG.Print("CX:",this.chaser.pos.x);
-        DEBUG.Print("O X:",MAP.Pos.l);
-        DEBUG.Print("O Y:",MAP.Pos.r);
+        Input.Render();
     }
 }

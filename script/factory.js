@@ -11,8 +11,8 @@ var C = {
     },   
     GAMEMODE:
     {
-        GETREADY:0,
-        GO:1,
+        TITLE:0,
+        GAME:1,
         INPLAY:2,
         LEVELENDING:3,
         LEVELEND:4,
