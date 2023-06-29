@@ -17,7 +17,7 @@ class Blocky{//TBA
         var mapData = this.CreateMap(MAP.planSize.x, MAP.planSize.y);
         var levelData = [];
         this.CreateMapRows(levelData,MAP.planSize.x,0,MAP.planSize.y,0)
-        this.DebugCreateLevel(mapData, levelData, -6, MAP.planSize.x, MAP.planSize.y);
+        this.TitleLevel(mapData, levelData, -6, MAP.planSize.x, MAP.planSize.y);
 
         MAP.Init(true, mapData, levelData);
 
@@ -45,45 +45,70 @@ class Blocky{//TBA
         return map;
     }
 
-    DebugCreateLevel(map, lvl, l, w, h){
-        
+    TitleLevel(map, lvl, l, w, h){        
         var y = h+l;
-        var t = 0;
-        var x=this.Section(map, lvl, y, 0, 7, h, 18);       
-        x=this.Section(map, lvl, y, x, 9, h, 18);  
+        var f = FEATURE[0];
+        var t = f.t;
+        var n = f.n[0];
+        var x=this.Section(map, lvl, y, 0, t, h, n);
     }
 
     CreateLevel(map, lvl, l, w, h){        
         var y = h+l;
         var t = 0;
-        var x=this.Section(map, lvl, y, 0, 7, h, 8);
-
+        var x=this.Section(map, lvl, y, 0, [7], h, 8);
+        var fc = 8;
+        var n, ys;
+        var o=0;
         do{
-            t = Util.OneOf([t==0 || t == 9?7:Util.OneOf([0,7,9])]); //gap or plat
+             if(fc<0){
+                fc = 8;
+                var f = FEATURE[Util.RndI(1,7)];
+                t = f.t;
+                n = Util.RndI(f.n[0], f.n[1]);
+                o = f.o;
+             }
+             else{
+                t = [Util.OneOf([t==0 || t == 9?7:Util.OneOf([0,7,9])])]; //gap or plat
 
-            var n = Util.RndI(t==0?1:2, t==0?4:6);
-            var ys = t==0?0:Util.RndI(-1,2);
-            if(y+ys < h){
-                y+=ys;
-            }
-            if(x+n > w){
-                n = w-x;
+                n = Util.RndI(t==0?1:2, t==0?4:6);
+                ys = t==0?0:Util.RndI(-1,2);
+                if(y+ys < h){
+                    y+=ys;
+                }
+                if(x+n > w){
+                    n = w-x;
+                }
+                o = 0;
             }
 
-            x=this.Section(map, lvl, y, x, t, h, n);
-        }while(x<w);        
+            if(o){
+                for (let i=0; i<o.p.length; i++){
+                    var d = BlockFactory.Create(o.t, (x*32)+16+o.p[i].x, (y*32)+16+o.p[i].y, 0);
+                    this.gameObjects.Add(d);                     
+                }
+            }   
+
+            x = this.Section(map, lvl, y, x, t, h, n);
+
+            fc -= n;
+        }while(x<w);
     }
 
-    Section(map, lvl, y, x, t, h, n){
+    Section(map, lvl, y, x, tt, h, n){
         for (let r=0; r<n; r++)
-        { 
-            lvl[y][x] = t==9 && r==0 ? t-1 :    //log 
-                        t==9 && r==n-1 ? t+1 :  //ends
-                        t;
-            for (let c=y+1; c<h; c++){ 
-                map[c][x] = t==0?map[c][x]:2;
+        {         
+            for (let rr=0; rr<tt.length; rr++)
+            { 
+                var t=tt[rr];
+                lvl[y][x] = t==9 && r==0 ? t-1 :    //log 
+                            t==9 && r==n-1 ? t+1 :  //ends
+                            t;
+                for (let c=y+1; c<h; c++){ 
+                    map[c][x] = t==0?map[c][x]:2;
+                }
+                x++;
             }
-            x++;
         }
         return x;
     }
@@ -93,14 +118,12 @@ class Blocky{//TBA
             var r = t.y;
 
             var pt = new Vector2(c * MAP.tileSize, r * MAP.tileSize); 
-            var d = BlockFactory.Create(Util.OneOf([12,11]), pt.x, pt.y, 0, 
-                new Vector2(0,0));
+            var d = BlockFactory.Create(Util.OneOf([12,11]), pt.x, pt.y, 0);
             this.gameObjects.Add(d); 
         }
     }
     Launch(x, y, V){
-        var d = BlockFactory.Create(Util.OneOf([4,5,6,13,14,16]), x, y, 0, 
-            new Vector2(0,0));
+        var d = BlockFactory.Create(Util.OneOf([4,5,6,13,14]), x, y, 0);
         d.V = V; 
         d.v = Util.Rnd(1)-0.5;
         this.gameObjects.Add(d); 

@@ -68,6 +68,37 @@ var DEFS = {
         ]
 }
 
+var FEATURE =[
+    {t:[7],n:[36,36]},
+    {t:[7,0,0],n:[2,5]},
+    {t:[7,0],n:[3,6]},
+    {t:[7],n:[2,3],
+        o:{
+            t:4,
+            p:[{x:0,y:-32},{x:32,y:-32},{x:16,y:-64}]
+        }
+    },
+    {t:[7],n:[3,4],
+        o:{
+            t:4,
+            p:[{x:0,y:-32},{x:32,y:-32},{x:64,y:-32},
+                {x:16,y:-64},{x:48,y:-64},{x:32,y:-96}]
+        }
+    },
+    {t:[7,0,0,0,7,7,7],n:[1,2],
+        o:{
+            t:16,
+            p:[{x:128,y:-16}]
+        }
+    },
+    {t:[7],n:[1,2],
+        o:{
+            t:6,
+            p:[{x:0,y:-32},{x:0,y:-64},{x:0,y:-96},{x:0,y:-128}]
+        }
+    }
+];
+
 var GAMEOBJ = [
     {id:0,col:"#6DF"},{id:1,col:"#8bf"},{id:2,col:"#731"},
     {
@@ -159,7 +190,7 @@ var GAMEOBJ = [
 
 class BlockFactory
 {
-    static Create(id, x, y, r, offset)
+    static Create(id, x, y, r)
     {
         var obj = GAMEOBJ.find(o=>o.id == id);
 
@@ -168,12 +199,12 @@ class BlockFactory
 
             if(obj.t==C.ASSETS.BALL || obj.t==C.ASSETS.BALL){
                 b =  new Circle(obj.t, obj.id, 
-                    new Vector2(x+offset.x, y+offset.y), 
+                    new Vector2(x, y), 
                     obj.w, obj.d, obj.f, obj.r, obj.dm, obj.col);
             }
             else{
                 b = new Rectangle(obj.t, obj.id, 
-                    new Vector2(x+offset.x, y+offset.y), 
+                    new Vector2(x, y), 
                     obj.w, obj.h, 
                     obj.d, 
                     obj.f, 
