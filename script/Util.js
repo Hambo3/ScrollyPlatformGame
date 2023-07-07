@@ -130,7 +130,10 @@ var Util = {
             }
         }
         return map;
-    }    
+    },
+    NumericText: function(val,len){
+        return ("000000"+val).slice(-len);
+    }
 
 }
 

@@ -242,7 +242,6 @@ class StaticBody extends GameObject{
         super.Update(dt, ci);
 
         if(!this.enabled){       
-            console.log("!") ;
             MAP.Tile(this.tiles);
             GAME.PlatformBreak(this.tiles);
             //particles??
@@ -349,7 +348,7 @@ class Player extends GameObject{
             this.V.x *=0.9;
 
             if(this.input.Up()){
-                this.V.y -=24;
+                this.V.y -=28;
             }
         }
 
@@ -401,7 +400,7 @@ class Shot extends GameObject{
 
 class Chaser {
 
-    constructor(offset, stop, behind, speed)
+    constructor(offset, stop, speed)
     {        
         this.pos = new Vector2(0,0);
         this.offset = offset;
@@ -409,14 +408,9 @@ class Chaser {
         this.velocityMin = [32,48];
         this.rate = 1;
         this.stop = stop;
-        this.behind = behind;
         this.enabled = 1;
         this.type = C.ASSETS.NONE;
         this.speed = speed || 60;
-    }
-
-    get Behind(){
-        return this.pos.x - this.behind;
     }
 
     Update(dt)
@@ -429,7 +423,7 @@ class Chaser {
 
         var p = MAP.Pos;
         if(!this.timer.enabled){
-            GAME.Launch(Util.RndI(p.l+64, p.r-64), 0, 
+            GAME.Launch(Util.RndI(p.l+200, p.r-200), 0, 
                 new Vector2(Util.RndI(-32, 32),0)
                 );
 

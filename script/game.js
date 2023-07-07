@@ -2,6 +2,9 @@ class Blocky{//TBA
 
     constructor(canvas, objects)
     {
+        this.score = 0;
+        this.plrStart = 80;
+
         this.gameTimer = null;
         this.gameMode = C.GAMEMODE.TITLE;
         this.level = 0;
@@ -22,12 +25,12 @@ class Blocky{//TBA
         MAP.Init(true, mapData, levelData);
 
         this.plr = new Player( Input,
-            new Vector2(2.5*32, (MAP.planSize.y-7)*32), 32, 32, 2, 0, 0);
+            new Vector2(this.plrStart, (MAP.planSize.y-7)*32), 32, 32, 2, 0, 0);
         this.gameObjects.Add(this.plr);
         this.plr.enabled = 0;
 
-        this.chaser = new Chaser(new Vector2(-400,-100), 
-            MAP.mapSize.x - (MAP.screenSize.x/2), MAP.screenSize.x*MAP.maxScale, 60);
+        this.chaser = new Chaser(new Vector2(-(MAP.mapSize.x/2),-100), 
+            MAP.mapSize.x - 200, 60);
         this.gameObjects.Add(this.chaser);
     }
 
@@ -55,24 +58,27 @@ class Blocky{//TBA
 
     CreateLevel(map, lvl, l, w, h){        
         var y = h+l;
-        var t = 0;
-        var x=this.Section(map, lvl, y, 0, [7], h, 8);
-        var fc = 8;
+        var t = [7];
+        var x=this.Section(map, lvl, y, 0, t, h, 8);
+        var fc = 0;
         var n, ys;
         var o=0;
         do{
-             if(fc<0){
-                fc = 8;
+             if(fc>12){
+                fc = 0;
                 var f = FEATURE[Util.RndI(1,7)];
                 t = f.t;
                 n = Util.RndI(f.n[0], f.n[1]);
                 o = f.o;
              }
              else{
-                t = [Util.OneOf([t==0 || t == 9?7:Util.OneOf([0,7,9])])]; //gap or plat
+                var b = t[t.length-1];
+                b = (b==0 || b == 9)
+                    ? 7
+                    : Util.OneOf([0,7,9]); //gap or plat
 
-                n = Util.RndI(t==0?1:2, t==0?4:6);
-                ys = t==0?0:Util.RndI(-1,2);
+                n = Util.RndI(b==0 ? 1 : 2, b==0 ? 4 : 6);
+                ys = b==0 ? 0 : Util.RndI(-1,2);
                 if(y+ys < h){
                     y+=ys;
                 }
@@ -80,6 +86,7 @@ class Blocky{//TBA
                     n = w-x;
                 }
                 o = 0;
+                t=[b];
             }
 
             if(o){
@@ -91,7 +98,7 @@ class Blocky{//TBA
 
             x = this.Section(map, lvl, y, x, t, h, n);
 
-            fc -= n;
+            fc += n;
         }while(x<w);
     }
 
@@ -172,7 +179,7 @@ class Blocky{//TBA
     
 
     IsLeftBehind(x){
-        return x < this.chaser.Behind;
+        return x < this.chaser.pos.x-(432*MAP.scale);
     }
 
     Start(){
@@ -182,11 +189,7 @@ class Blocky{//TBA
         var levelData = [];
         this.CreateMapRows(levelData,MAP.planSize.x,0,MAP.planSize.y,0)
 
-        //this.CreateLevel(mapData, -18, MAP.planSize.x, MAP.planSize.y);
-        //this.CreateLevel(mapData, levelData, -12, MAP.planSize.x, MAP.planSize.y);
         this.CreateLevel(mapData, levelData, -6, MAP.planSize.x, MAP.planSize.y);
-
-        //this.DebugCreateLevel(mapData, levelData, -6, MAP.planSize.x, MAP.planSize.y);
 
         MAP.Init(true, mapData, levelData);
 
@@ -202,20 +205,27 @@ class Blocky{//TBA
         }
 
         this.plr = new Player( Input,
-            new Vector2(2.5*32, (MAP.planSize.y-7)*32), 32, 32, 2, 0, 0);
+            new Vector2(this.plrStart, (MAP.planSize.y-7)*32), 32, 32, 2, 0, 0);
         this.gameObjects.Add(this.plr);
         this.plr.enabled = 0;
 
-        this.chaser = new Chaser(new Vector2(-400,-100), 
-            MAP.mapSize.x - (MAP.screenSize.x/2), MAP.screenSize.x*MAP.maxScale, 60);
+        this.chaser = new Chaser(new Vector2(-(MAP.mapSize.x/2),-100), 
+            MAP.mapSize.x - 200, 60);
         this.gameObjects.Add(this.chaser);
 
         this.gameMode = C.GAMEMODE.GAME;
         this.plr.enabled = 1;
         this.level = 1;
+        this.score = 0;
+        MAP.scale = 1;
     } 
+    NextLevel(){
+        this.level ++;
+        this.Start();
+    }
     LevelEnd(){
         this.gameMode = C.GAMEMODE.LEVELEND;
+        this.gameTimer = new Timer(4);
     }
     GameOver(){
         this.gameMode = C.GAMEMODE.GAMEOVER;
@@ -238,15 +248,18 @@ class Blocky{//TBA
                 this.Start();
             }
         }else if(this.gameMode == C.GAMEMODE.LEVELEND){
-            if(Input.Fire1()){
-                this.Start();
-            }
+            if(this.gameTimer.Update(dt)){
+                this.NextLevel();
+            } 
+            // if(Input.Fire1()){
+            //     this.Start();
+            // }
         }else if(this.gameMode == C.GAMEMODE.GAME || this.gameMode == C.GAMEMODE.GAMEOVER){
             if(this.plr.C.x < (this.chaser.pos.x-340) && MAP.scale < MAP.maxScale){
-                MAP.Zoom(0.001);
+                MAP.Zoom(0.002);
             }
             else if(MAP.scale > 1){
-                MAP.Zoom(-0.001);
+                MAP.Zoom(-0.002);
             }
 
             //this.offset = MAP.ScrollTo(new Vector2(this.plr.C.x, this.plr.C.y));
@@ -267,6 +280,9 @@ class Blocky{//TBA
             for (var i = 0; i < p.length; i++) {
                 p[i].Update(dt);
             }
+
+            var ps = parseInt((this.plr.C.x - this.plrStart)/10);
+            this.score = ps > this.score ? ps : this.score;
 
             if(this.plr.C.x > MAP.mapSize.x - 200){
                 this.LevelEnd();
@@ -299,6 +315,9 @@ class Blocky{//TBA
 
         MAP.PostRender();
   
+        SFX.Text("DISTANCE: " + Util.NumericText(this.score,5),16, 4, 3, 0, "#fff");
+        SFX.Text("HEALTH: " + Util.NumericText(parseInt(this.plr.damage),5),240, 4, 3, 0, "#fff");
+
         if(this.gameMode == C.GAMEMODE.TITLE){
             //SFX.Box(0,0,800,600, "rgba(100,173,217,0.6)");
             SFX.Text("TONY",240,100,16,1); 
@@ -306,7 +325,7 @@ class Blocky{//TBA
         }else if(this.gameMode == C.GAMEMODE.LEVELEND){
             //SFX.Box(0,0,800,600, "rgba(100,173,217,0.6)");
             SFX.Text("YOUR A REAL HERO NOW",100,100,8,1); 
-            SFX.Text("FIRE TO CONTINUE",300,240,4); 
+            //SFX.Text("FIRE TO CONTINUE",300,240,4); 
         }else if(this.gameMode == C.GAMEMODE.GAMEOVER){
             //SFX.Box(0,0,800,600, "rgba(100,173,217,0.6)");
             SFX.Text("GAME OVER",200,100,8,1);   

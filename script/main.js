@@ -3,7 +3,7 @@
 //https://dev.to/nitdgplug/learn-javascript-through-a-game-1beh
 //https://www.minifier.org/
 //"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe C:\z\Git\WG5\index.htm" --allow-file-access-from-files
-var fps = 120;
+var fps = 60;
 var rf = (function(){
   return window.requestAnimationFrame       ||
       window.webkitRequestAnimationFrame ||
@@ -39,7 +39,7 @@ var map = {
 	size:{
 		tile:{width:32, height:32},
 		screen:{width:25, height:19},
-		world:{width:200, height:24}
+		world:{width:100, height:32}
 	}
 };
 
