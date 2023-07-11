@@ -193,9 +193,9 @@ class GameObject extends RigidShape{
                 var perp = ci[i].P1 != this ? ci[i].P1 : ci[i].P2;
                 var C = ci[i].C;
                 if(this.dmgIgnore.indexOf(perp.type) == -1 && 
-                    this.collidedWith.indexOf(perp) == -1){                    
+                    this.collidedWith.indexOf(perp) == -1){
+                    this.collidedWith.push(perp);
                     if(C.I>3){
-                        this.collidedWith.push(perp);
                         this.damage -= C.I;
                         if(this.damage <= 0){
                             this.enabled = 0;
@@ -203,8 +203,7 @@ class GameObject extends RigidShape{
                                 GAME.ParticleGen(this.C.Clone(), 3, this.col, 5);
                             }
                         }
-
-                    }                      
+                    }
                 } 
             }
         }        
@@ -343,13 +342,21 @@ class Player extends GameObject{
                 this.frame = this.anim.Next(this.frame);
             }
             else{
-                this.V.x *=0.8;
+            //    this.V.x *=0.8;
             }
             this.V.x *=0.9;
 
-            if(this.input.Up()){
+            if(this.input.Up()){                
                 this.V.y -=28;
             }
+        }
+        else{
+            if(this.input.Left()){
+                this.V.x -=0.05;
+            }
+            else if(this.input.Right()){
+                this.V.x +=0.05;
+            }  
         }
 
         // if(this.input.Fire1()){
@@ -416,7 +423,7 @@ class Chaser {
     Update(dt)
     {   
         if(this.pos.x < this.stop){            
-            this.pos.x += this.speed*dt;            
+            this.pos.x += this.speed*dt;
         }
 
         this.timer.Update(dt);

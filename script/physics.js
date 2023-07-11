@@ -52,9 +52,9 @@ class World{
                             this.resolveCollision(objects[i], objects[j], collisionInfo);
                         }
                         if(collisionInfo.D != null){
-                            if(k==this.smoothing-1){
+                            //if(k==this.smoothing-2){
                                 clx.push({C:collisionInfo, P1:objects[i], P2:objects[j]});
-                            }
+                            //}
                            }
                     } 
                 }

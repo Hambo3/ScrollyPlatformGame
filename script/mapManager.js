@@ -22,8 +22,8 @@ class MapManger{
         this.tileCanvas = Util.Context(this.mapSize.x, this.mapSize.y);
         this.osCanvas = Util.Context(this.mapSize.x, this.mapSize.y);
 
-        this.screenCtx.imageSmoothingEnabled = true;        
-        this.osCanvas.imageSmoothingEnabled = true;
+        this.screenCtx.imageSmoothingEnabled = false;        
+
         this.rend = new Render(this.tileCanvas.ctx);
     }
 
@@ -41,21 +41,25 @@ class MapManger{
     }
 
     Tile(t){
-        for (var i = 0; i < t.t.length; i++) {
-            var c = t.t[i];
-            var r = t.y;
-            this.lvlData[r][c] = 0;
+        try {
+            for (var i = 0; i < t.t.length; i++) {
+                var c = t.t[i];
+                var r = t.y;
+                this.lvlData[r][c] = 0;
 
-            var p =this.mapData[r][c];
-            var pt = new Vector2(c * this.tileSize, r * this.tileSize); 
-            var s = GAMEOBJ.find(o=>o.id == p);
-            if(s.col){
-                this.rend.Box(pt.x, pt.y,32,32,s.col);
-            }
-            else{
-                this.rend.Sprite(pt.x+16, pt.y+16, SPRITES.Get(s.src, 0), 1, 0);
-            }
-        }           
+                var p =this.mapData[r][c];
+                var pt = new Vector2(c * this.tileSize, r * this.tileSize); 
+                var s = GAMEOBJ.find(o=>o.id == p);
+                if(s.col){
+                    this.rend.Box(pt.x, pt.y,32,32,s.col);
+                }
+                else{
+                    this.rend.Sprite(pt.x+16, pt.y+16, SPRITES.Get(s.src, 0), 1, 0);
+                }
+            }          
+        } catch (error) {
+            console.log("Tile" + {error});
+        }         
     }
 
     TileInit(){

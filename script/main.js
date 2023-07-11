@@ -31,6 +31,7 @@ var AUDIO;
 var SPRITES = [];
 var PHYSICS = new World();
 var canvas;
+var Sound;
 
 var IsTouchDevice = window.ontouchstart !== undefined;
 		
@@ -39,7 +40,7 @@ var map = {
 	size:{
 		tile:{width:32, height:32},
 		screen:{width:25, height:19},
-		world:{width:100, height:32}
+		world:{width:200, height:32}
 	}
 };
 
@@ -65,6 +66,8 @@ function Start(canvasBody)
 		else{
 			MAP.maxScale = map.size.world.height/map.size.screen.height;
 		}
+
+		Sound = new TinySound();
 
 		//offscreen renderer
 		GFX = new Render(MAP.osCanvas.ctx);	

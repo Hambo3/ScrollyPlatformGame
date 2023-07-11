@@ -1,38 +1,6 @@
 var EasingFunctions = {
-    // no easing, no acceleration
-    linear: function (t) { return t },
-    // accelerating from zero velocity
-    easeInQuad: function (t) { return t * t },
-    // decelerating to zero velocity
-    easeOutQuad: function (t) { return t * (2 - t) },
-    // acceleration until halfway, then deceleration
-    easeInOutQuad: function (t) { return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t },
-    // accelerating from zero velocity 
-    easeInCubic: function (t) { return t * t * t },
-    // decelerating to zero velocity 
-    easeOutCubic: function (t) { return (--t) * t * t + 1 },
-    // acceleration until halfway, then deceleration 
-    easeInOutCubic: function (t) { return t < .5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1 },
-    // accelerating from zero velocity 
-    easeInQuart: function (t) { return t * t * t * t },
-    // decelerating to zero velocity 
-    easeOutQuart: function (t) { return 1 - (--t) * t * t * t },
-    // acceleration until halfway, then deceleration
-    easeInOutQuart: function (t) { return t < .5 ? 8 * t * t * t * t : 1 - 8 * (--t) * t * t * t },
-    // accelerating from zero velocity
-    easeInQuint: function (t) { return t * t * t * t * t },
-    // decelerating to zero velocity
-    easeOutQuint: function (t) { return 1 + (--t) * t * t * t * t },
-    // acceleration until halfway, then deceleration 
-    easeInOutQuint: function (t) { return t < .5 ? 16 * t * t * t * t * t : 1 + 16 * (--t) * t * t * t * t },
-    // elastic bounce effect at the beginning
-    easeInElastic: function (t) { return (.04 - .04 / t) * Math.sin(25 * t) + 1 },
-    // elastic bounce effect at the end
-    easeOutElastic: function (t) { return .04 * t / (--t) * Math.sin(25 * t) },
-    // elastic bounce effect at the beginning and end
-    easeInOutElastic: function (t) { return (t -= .5) < 0 ? (.01 + .01 / t) * Math.sin(50 * t) : (.02 - .01 / t) * Math.sin(50 * t) + 1 }
+    easeInQuad: function (t) { return t * t }
 }
-
 
 var Util = {
     // PercentChance: function(p){
@@ -81,36 +49,41 @@ var Util = {
         return {ctx:canvas.getContext('2d'), canvas:canvas};
     },
     UnpackWorldObjects: function(m){
+
         var objs = [];
-        for (var r = 0; r < m.length; r++) {
-            var last = {};
-            var l = 0;
-            var sp = 0;
-            for (var c = 0; c < m[r].length; c++) {
-                sp = GAMEOBJ[m[r][c]];
-                if(sp.s && (sp.pid == last.pid || !last.s)){
-                    l++;
-                }
-                else{
-                    if(l){
-                        objs.push({x:c-l,y:r,w:l,s:last.pid,d:last.dm});
+        try {
+            for (var r = 0; r < m.length; r++) {
+                var last = {};
+                var l = 0;
+                var sp = 0;
+                for (var c = 0; c < m[r].length; c++) {
+                    sp = GAMEOBJ[m[r][c]];
+                    if(sp.s && (sp.pid == last.pid || !last.s)){
+                        l++;
                     }
-                    l=sp.s?1:0;
+                    else{
+                        if(l){
+                            objs.push({x:c-l,y:r,w:l,s:last.pid,d:last.dm});
+                        }
+                        l=sp.s?1:0;
+                    }
+                    last = sp;
                 }
-                last = sp;
+                if(l > 0){
+                    objs.push({x:c-l,y:r,w:l,s:sp.pid,d:sp.dm});
+                }            
             }
-            if(l > 0){
-                objs.push({x:c-l,y:r,w:l,s:sp.pid,d:sp.dm});
+
+
+            for (var i = 0; i < objs.length; i++) {
+                var t = [];
+                for (var c = 0; c < objs[i].w; c++) {
+                    t.push(objs[i].x+c);
+                }
+                objs[i].t = t;
             }            
-        }
-
-
-        for (var i = 0; i < objs.length; i++) {
-            var t = [];
-            for (var c = 0; c < objs[i].w; c++) {
-                t.push(objs[i].x+c);
-            }
-            objs[i].t = t;
+        } catch (error) {
+            console.log("UnpackWorldObjects"+{error});
         }
 
         return objs;
