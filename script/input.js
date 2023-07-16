@@ -165,7 +165,7 @@ class TouchPad extends GamePad{
 }
 
 class Input extends TouchPad{
-    static Up(){return this.Touched(0) || this.IsSingle('w') || this.IsSingle('ArrowUp') || this.Joy(0,0,1)}
+    static Up(){return this.Touched(0) || this.IsSingle('w') || this.IsSingle('ArrowUp') || this.Joy(0,0,0)}
     static Down(){return this.Touching(1) || this.IsDown('s') || this.IsDown('ArrowDown') || this.Joy(0,1,1)}
     static Left(){return this.Touching(2) || this.IsDown('a') || this.IsDown('ArrowLeft') || this.Joy(0,2,1)}
     static Right(){return this.Touching(3) || this.IsDown('d') || this.IsDown('ArrowRight') || this.Joy(0,3,1)}

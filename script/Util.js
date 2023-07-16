@@ -107,7 +107,6 @@ var Util = {
     NumericText: function(val,len){
         return ("000000"+val).slice(-len);
     }
-
 }
 
 // a v simple object pooler

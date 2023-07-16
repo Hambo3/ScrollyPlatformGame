@@ -27,11 +27,12 @@ var GAME;
 var GFX;
 var SFX;
 var MAP;
-var AUDIO;
+
+var MUSIC;
 var SPRITES = [];
 var PHYSICS = new World();
 var canvas;
-var Sound;
+var AUDIO;
 
 var IsTouchDevice = window.ontouchstart !== undefined;
 		
@@ -40,7 +41,7 @@ var map = {
 	size:{
 		tile:{width:32, height:32},
 		screen:{width:25, height:19},
-		world:{width:200, height:32}
+		world:{width:100, height:32}
 	}
 };
 
@@ -67,7 +68,9 @@ function Start(canvasBody)
 			MAP.maxScale = map.size.world.height/map.size.screen.height;
 		}
 
-		Sound = new TinySound();
+
+		MUSIC = new TinyMusic();
+		AUDIO = new TinySound();
 
 		//offscreen renderer
 		GFX = new Render(MAP.osCanvas.ctx);	
@@ -84,14 +87,14 @@ function Start(canvasBody)
 
 function preInit(){
 
-	Generate(0,'sprites8x2', 72, 2);
-	Generate(0,'sprites8x4', 72, 4);
-	Generate(1,'sprites16x1', 96, 1);
-	Generate(1,'sprites16x2', 96, 2);
-	Generate(1,'sprites16x4', 96, 4);
+	Generate(0,'sprites8x2', 111, 2);
+	Generate(0,'sprites8x4', 111, 4);
+	Generate(1,'sprites16x1', 128, 1);
+	Generate(1,'sprites16x2', 128, 2);
+	Generate(1,'sprites16x4', 128, 4);
+	Generate(2,'sprites24x4', 48, 4);
 	Generate1();
-	
-	//MAP.Init(true);	
+
 	init();
 }
 
@@ -135,7 +138,7 @@ function init()
 {  
 	lastTime = 0;
 
-	GAME = new Blocky(canvas);
+	GAME = new Blocky();
 
 	FixedLoop();  
 }
@@ -146,8 +149,7 @@ function SlowMo(mo){
 
 function FixedLoop(){
 	if(Input.IsSingle('Escape') ) {
-		GAME = new Blocky(canvas);
-		//GAME.Quit();
+		GAME.Quit();
 	}
 
 //DEBUG

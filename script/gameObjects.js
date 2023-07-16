@@ -173,6 +173,7 @@ class GameObject extends RigidShape{
         this.type;
         this.hits = null;
         this.dmgIgnore = [];
+        this.ignore = [];
         this.isStatic = 0;
         this.spriteId;
         this.body;
@@ -180,7 +181,7 @@ class GameObject extends RigidShape{
         this.breakPoint = 0;
         this.collidedWith = [];
 
-        this.col = null;
+        this.particle = null;
     }
 
     Update(dt, ci)
@@ -199,8 +200,8 @@ class GameObject extends RigidShape{
                         this.damage -= C.I;
                         if(this.damage <= 0){
                             this.enabled = 0;
-                            if(this.col){
-                                GAME.ParticleGen(this.C.Clone(), 3, this.col, 5);
+                            if(this.particle){
+                                GAME.ParticleGen(this.C.Clone(), this.particle);
                             }
                         }
                     }
@@ -243,7 +244,6 @@ class StaticBody extends GameObject{
         if(!this.enabled){       
             MAP.Tile(this.tiles);
             GAME.PlatformBreak(this.tiles);
-            //particles??
         }
     }
 
@@ -255,7 +255,7 @@ class StaticBody extends GameObject{
 
 class Circle extends GameObject{
 
-    constructor(type, sprId, center, radius, mass, friction, restitution, dmg, col)
+    constructor(type, sprId, center, radius, mass, friction, restitution, dmg, pt)
     {        
         super(center, mass, friction, restitution, 0 ,radius);
         this.enabled = 1;
@@ -265,7 +265,7 @@ class Circle extends GameObject{
         this.body = GAMEOBJ.find(o=>o.id == sprId).src;
         this.damage = dmg;
         this.breakPoint = this.damage /2;
-        this.col = col;
+        this.particle = pt;
     }
 
     Update(dt, ci)
@@ -284,7 +284,7 @@ class Circle extends GameObject{
 
 class Rectangle extends GameObject{
 
-    constructor(type, sprId, center, width, height, mass, friction, restitution, dmg, col)
+    constructor(type, sprId, center, width, height, mass, friction, restitution, dmg, pt)
     {        
         super(center, mass, friction, restitution, 1, Math.hypot(width, height)/2, width, height);
         this.enabled = 1;       
@@ -294,7 +294,7 @@ class Rectangle extends GameObject{
         this.body = GAMEOBJ.find(o=>o.id == sprId).src;
         this.damage = dmg;
         this.breakPoint = this.damage /2;
-        this.col = col;
+        this.particle = pt;
     }
 
     Update(dt, ci)
@@ -303,6 +303,18 @@ class Rectangle extends GameObject{
             this.frame=1;
         }
         super.Update(dt, ci);
+
+        if(!this.enabled){
+            if(this.spriteId == 6){
+                var p = new BadGuy( 
+                    this.C.Clone(), 32, 32, 2, 0, 0);
+                GAME.gameObjects.Add(p);
+                p.enabled = 1;
+                p.damage = 100;
+                p.V.y = -(8*dt);
+                p.V.x = this.V.x;
+            }
+        }
     }
 
     Render(x,y)
@@ -321,7 +333,7 @@ class Player extends GameObject{
         this.dmgIgnore = [C.ASSETS.PLATFORM];
         this.spriteId = 3;
         this.body = GAMEOBJ.find(o=>o.id == this.spriteId).src;
-        this.damage = 500; 
+        this.damage = 0; 
           
         this.ignore = [C.ASSETS.SHOT];
         this.input = input;
@@ -341,23 +353,23 @@ class Player extends GameObject{
 
                 this.frame = this.anim.Next(this.frame);
             }
-            else{
-            //    this.V.x *=0.8;
-            }
+            // else{
+            // //    this.V.x *=0.8;
+            // }
             this.V.x *=0.9;
 
-            if(this.input.Up()){                
+            if(this.input.Up()){
                 this.V.y -=28;
             }
         }
-        else{
-            if(this.input.Left()){
-                this.V.x -=0.05;
-            }
-            else if(this.input.Right()){
-                this.V.x +=0.05;
-            }  
-        }
+        // else{
+        //     if(this.input.Left()){
+        //         //this.V.x -=0.05;
+        //     }
+        //     else if(this.input.Right()){
+        //         //this.V.x +=0.05;
+        //     }  
+        // }
 
         // if(this.input.Fire1()){
         //     GAME.AddObject(this.C.x, this.C.y, {x:-32,y:-40});
@@ -365,6 +377,94 @@ class Player extends GameObject{
 
         if(this.input.Fire1()){
             GAME.AddObject(this.C.x, this.C.y, new Vector2(32,-40));
+        }
+
+        if(ci.length != 0){
+             this.G = 0;    
+        }
+
+        super.Update(dt, ci);
+    }
+
+    Render(x,y)
+    {
+        super.Render(x,y);
+    }
+}
+
+class BadGuy extends GameObject{
+
+    constructor(center, width, height, mass, friction, restitution)
+    {        
+        super(center, mass, friction, restitution, 1, Math.hypot(width, height)/2, width, height);
+        this.type = C.ASSETS.BADGUY;
+
+        this.dmgIgnore = [C.ASSETS.PLATFORM];
+        this.spriteId = 20;
+        this.body = GAMEOBJ.find(o=>o.id == this.spriteId).src;
+        this.damage = 0;          
+        this.anim = new Anim(16, 2);        
+    }
+
+    Update(dt, ci)
+    {  
+        if(ci.length > 0){
+            if(GAME.plr.C.x < this.C.x){
+                this.V.x -=1.5;
+            }
+            else{
+                this.V.x +=1.5;
+            }
+            this.frame = this.anim.Next(this.frame);
+
+            if(GAME.plr.C.y < (this.C.y-8) && Util.OneIn(8)){
+                this.V.y -=16;
+            }
+            this.V.x *=0.9;
+        }
+
+        if(ci.length != 0){
+             this.G = 0;    
+        }
+
+        super.Update(dt, ci);
+    }
+
+    Render(x,y)
+    {
+        super.Render(x,y);
+    }
+}
+
+class Boss extends GameObject{
+
+    constructor(center, width, height, mass, friction, restitution)
+    {        
+        super(center, mass, friction, restitution, 1, Math.hypot(width, height)/2, width, height);
+        this.type = C.ASSETS.BADGUY;
+
+        this.dmgIgnore = [C.ASSETS.PLATFORM];
+        this.spriteId = 21;
+        this.body = GAMEOBJ.find(o=>o.id == this.spriteId).src;
+        this.damage = 0;          
+        this.anim = new Anim(16, 2);        
+    }
+
+    Update(dt, ci)
+    {  
+        if(ci.length > 0){
+            if(GAME.plr.C.x < this.C.x){
+                this.V.x -=1.5;
+            }
+            else{
+                this.V.x +=1.5;
+            }
+            this.frame = this.anim.Next(this.frame);
+
+            if(GAME.plr.C.y < (this.C.y-8) && Util.OneIn(8)){
+                this.V.y -=16;
+            }
+            this.V.x *=0.9;
         }
 
         if(ci.length != 0){
@@ -388,7 +488,7 @@ class Shot extends GameObject{
         super(center, obj.d, obj.f, obj.r, 0 ,obj.w/2);   
 
         this.damage = obj.dm;
-        this.col = obj.col;
+        this.particle = obj.p;
         this.type = C.ASSETS.SHOT;
         this.spriteId = 15;
         this.body = GAMEOBJ.find(o=>o.id == this.spriteId).src;
