@@ -87,12 +87,12 @@ function Start(canvasBody)
 
 function preInit(){
 
-	Generate(0,'sprites8x2', 111, 2);
-	Generate(0,'sprites8x4', 111, 4);
-	Generate(1,'sprites16x1', 128, 1);
-	Generate(1,'sprites16x2', 128, 2);
-	Generate(1,'sprites16x4', 128, 4);
-	Generate(2,'sprites24x4', 48, 4);
+	Generate(0,'s8x2', 104, 8, 2);
+	Generate(0,'s8x4', 104, 8, 4);
+	Generate(1,'s16x1', 128, 16, 1);
+	Generate(1,'s16x2', 128, 16, 2);
+	Generate(1,'s16x4', 128, 16, 4);
+	Generate(2,'s24x4', 48, 24, 4);
 	Generate1();
 
 	init();
@@ -113,11 +113,13 @@ function Generate1(){
 		gx.Sprite(8+(i*16), 8, m, 1, 0);
 	}
 	gx.Sprite(8+(i*16), 8, r, 1, 0);
-	SPRITES.assets['spritesX'] = g;
+	SPRITES.assets['spX'] = g;
 }
 
-function Generate(index, tagname, w, sz){
+function Generate(index, tagname, w, h, sz){
 	var g = document.createElement('canvas');
+	g.width = w*sz;
+	g.height = h*sz;
 	var gctx = g.getContext('2d');
 	var gx = new Render(gctx);      
 	

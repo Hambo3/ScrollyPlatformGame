@@ -39,18 +39,21 @@ class Blocky{//TBA
         var f = FEATURE[0];
         var t = f.t;
         var n = f.n[0];
-        var x=this.Section(map, lvl, y, 0, t, h, n);
+        var x=this.Section(map, lvl, y, 0, t, h, n,0);
     }
 
     CreateLevel(map, lvl, l, w, h){        
         var y = h+l;
-        var t = [7];
-        var x = this.Section(map, lvl, y, 0, t, h, 8);
+        var t = [1];
+        var stage = 0;
+        var x = this.Section(map, lvl, y, 0, t, h, 8,stage);
         var fc = 0;
         var n, ys;
         var o = 0;
         var l2 = null;
+
         do{
+            stage = x>(w/2) ? 1 : 0;
              if(this.level>1 && fc>12){
                 fc = 0;
                 var f = FEATURE[Util.RndI(1,7)];
@@ -58,7 +61,7 @@ class Blocky{//TBA
                 n = Util.RndI(f.n[0], f.n[1]);
                 o = f.o;
                 if(l2==null && f.l2){
-                    l2 = {t:[Util.OneOf([7,9])], 
+                    l2 = {t:[Util.OneOf([1,2])], 
                         y: y+f.l2.y, 
                         x: x+f.l2.x, 
                         n:Util.RndI(3, 6),
@@ -67,9 +70,9 @@ class Blocky{//TBA
              }
              else{
                 var b = t[t.length-1];
-                b = (b==0 || b == 9)
-                    ? 7
-                    : Util.OneOf([0,7,9]); //gap plat brk 0 7 9
+                b = (b==0 || b == 2)
+                    ? 1
+                    : Util.OneOf([0,1,2]); //gap plat brk 0 7 9
                                                         //0 1 2
                 n = Util.RndI(b==0 ? 1 : 2, b==0 ? 4 : 6);
                 ys = b==0 ? 0 : Util.RndI(-1,2);
@@ -92,14 +95,14 @@ class Blocky{//TBA
                 }
             }
 
-            x = this.Section(map, lvl, y, x, t, h, n);
+            x = this.Section(map, lvl, y, x, t, h, n,stage);
 
             if(l2){
                 if(l2.x+l2.n > w){
                     l2.n = w-l2.x;
                 }
 
-                l2.x = this.Section(map, lvl, l2.y, l2.x, l2.t, 0, l2.n);
+                l2.x = this.Section(map, lvl, l2.y, l2.x, l2.t, 0, l2.n, stage);
                 l2.m+=l2.n;
                 
                 ys=Util.RndI(-1,2);
@@ -109,27 +112,50 @@ class Blocky{//TBA
                     l2.y+=ys;
                 }
 
-                l2.t=[Util.OneOf([0,7,9])];
+                l2.t=[Util.OneOf([0,1,2])];
                 if(l2.m>32){
                     l2=null;
                 }
             }
-
+            
             fc += n;
         }while(x<w);
     }
 
-    Section(map, lvl, y, x, tt, h, n){
-        for (let r=0; r<n; r++)
+    Section(map, lvl, y, x, tt, h, n, stg){
+        var stgt = [7,23,22];
+        var stga = [7,25,24];
+        for (var r=0; r<n; r++)
         {         
-            for (let rr=0; rr<tt.length; rr++)
-            { 
-                var t=tt[rr];
-                lvl[y][x] = t==9 && r==0 ? t-1 :    //log 
-                            t==9 && r==n-1 ? t+1 :  //ends
-                            t;
-                for (let c=y+1; c<h; c++){ 
-                    map[c][x] = t==0?map[c][x]:2;
+            for (var rr=0; rr<tt.length; rr++)
+            {                  
+                var f=tt[rr];
+                var t = f;
+                if(f==2){
+                    if(r==0){ 
+                        t=8;
+                    }
+                    else if(r==n-1){
+                        t=10;
+                    }
+                    else{
+                        t=9;
+                    }
+                }
+                else if (f==1){
+                    t = stgt[stg];
+                    if(Util.OneIn(8)){
+                        t=stga[stg];
+                    }
+                }
+
+                 lvl[y][x] = t;
+                //              t==9 && r==0 ? t-1 :    //log 
+                //             t==9 && r==n-1 ? t+1 :  //ends
+                //             t;
+                for (var c=y+1; c<h; c++){ 
+                    if(t)
+                    map[c][x] = 2;//t==0?map[c][x]:2;
                 }
                 x++;
             }
@@ -264,12 +290,12 @@ class Blocky{//TBA
         this.lvlScore = 0;
         MAP.scale = 1;
 
-        // if(lvl){
-        //     MUSIC.Play();
-        // }
-        // else{
-        //     MUSIC.Stop();
-        // }
+        if(lvl){
+            MUSIC.Play();
+        }
+        else{
+            MUSIC.Stop();
+        }
     } 
     NextLevel(){
         this.score += this.lvlScore;
