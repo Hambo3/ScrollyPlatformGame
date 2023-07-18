@@ -31,7 +31,6 @@ var MAP;
 var MUSIC;
 var SPRITES = [];
 var PHYSICS = new World();
-var canvas;
 var AUDIO;
 
 var IsTouchDevice = window.ontouchstart !== undefined;
@@ -41,25 +40,23 @@ var map = {
 	size:{
 		tile:{width:32, height:32},
 		screen:{width:25, height:19},
-		world:{width:100, height:32}
+		world:{width:100, height:28}
 	}
 };
 
-/*****************************/
+
 function Start(canvasBody)
 {	
 	// Create the canvas
-	canvas = document.createElement("canvas");
-	if(canvas.getContext)
+	var wd = (map.size.screen.width * map.size.tile.width);
+	var ht = (map.size.screen.height * map.size.tile.height);
+	var mCtx = Util.Context(wd, ht);
+	if(mCtx.canvas.getContext)
 	{
-		ctx = canvas.getContext("2d");
-		canvas.width = (map.size.screen.width * map.size.tile.width);
-		canvas.height = (map.size.screen.height * map.size.tile.height);
-
 		var b = document.getElementById(canvasBody);
-    	b.appendChild(canvas);
+    	b.appendChild(mCtx.canvas);
 
-		MAP = new MapManger(ctx, map, new Vector2(0,0));
+		MAP = new MapManger(mCtx.ctx, map, new Vector2(0,0));
 
 		if(map.size.world.height > map.size.world.width){
 			MAP.maxScale = map.size.world.width/map.size.screen.width;
@@ -74,10 +71,9 @@ function Start(canvasBody)
 
 		//offscreen renderer
 		GFX = new Render(MAP.osCanvas.ctx);	
-		SFX = new Render(MAP.screenCtx, map.size.screen.width* map.size.tile.width, 
-			map.size.screen.height* map.size.tile.height);	
+		SFX = new Render(MAP.screenCtx, wd, ht);	
 
-		Input.Init(canvas, IsTouchDevice, SFX);
+		Input.Init(mCtx.canvas, IsTouchDevice, SFX);
 
 		SPRITES = new SpritePreProcessor(null, DEFS.spriteDef);	
 
@@ -93,16 +89,15 @@ function preInit(){
 	Generate(1,'s16x2', 128, 16, 2);
 	Generate(1,'s16x4', 128, 16, 4);
 	Generate(2,'s24x4', 48, 24, 4);
-	Generate1();
+	Generate1(300,32);
 
 	init();
 }
 
 
-function Generate1(){
-	var g = document.createElement('canvas');
-	var gctx = g.getContext('2d');
-	var gx = new Render(gctx);      
+function Generate1(w, h){
+	var g = Util.Context(w, h);
+	var gx = new Render(g.ctx);      
 
 	var l = SPRITES.Get('log16l', 0);
 	var m = SPRITES.Get('log16', 0);
@@ -113,15 +108,12 @@ function Generate1(){
 		gx.Sprite(8+(i*16), 8, m, 1, 0);
 	}
 	gx.Sprite(8+(i*16), 8, r, 1, 0);
-	SPRITES.assets['spX'] = g;
+	SPRITES.assets['spX'] = g.canvas;
 }
 
 function Generate(index, tagname, w, h, sz){
-	var g = document.createElement('canvas');
-	g.width = w*sz;
-	g.height = h*sz;
-	var gctx = g.getContext('2d');
-	var gx = new Render(gctx);      
+	var g = Util.Context(w*sz, h*sz);
+	var gx = new Render(g.ctx);      
 	
 	var spr = Util.Unpack(DEFS.spriteData[index]);
 
@@ -133,7 +125,7 @@ function Generate(index, tagname, w, h, sz){
 		}
 	}
 
-	SPRITES.assets[tagname] = g;
+	SPRITES.assets[tagname] = g.canvas;
 }
 
 function init()
@@ -145,16 +137,15 @@ function init()
 	FixedLoop();  
 }
 
-function SlowMo(mo){
-	sStep = mo * step;
-}
-
 function FixedLoop(){
 	if(Input.IsSingle('Escape') ) {
 		GAME.Quit();
 	}
 
 //DEBUG
+// function SlowMo(mo){
+// 	sStep = mo * step;
+// }
 // if(Input.IsSingle('y') ) {
 // 	slowMo+=1;
 // 	SlowMo(slowMo);		

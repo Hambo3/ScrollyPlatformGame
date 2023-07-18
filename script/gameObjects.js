@@ -306,8 +306,7 @@ class Rectangle extends GameObject{
 
         if(!this.enabled){
             if(this.spriteId == 6){
-                var p = new BadGuy( 
-                    this.C.Clone(), 32, 32, 2, 0, 0);
+                var p = new BadGuy(this.C.Clone(), 20);
                 GAME.gameObjects.Add(p);
                 p.enabled = 1;
                 p.damage = 100;
@@ -325,14 +324,17 @@ class Rectangle extends GameObject{
 
 class Player extends GameObject{
 
-    constructor(input, center, width, height, mass, friction, restitution)
+    constructor(input, center)
     {        
-        super(center, mass, friction, restitution, 1, Math.hypot(width, height)/2, width, height);
-        this.type = C.ASSETS.PLAYER;
+        var b = GAMEOBJ.find(o=>o.id == 3);
 
+        super(center, b.d, b.f, b.r, 1, Math.hypot(b.w, b.h)/2, b.w, b.h);
+        this.type = C.ASSETS.PLAYER;
+        this.spriteId = b.id;
+
+        this.body = b.src;
         this.dmgIgnore = [C.ASSETS.PLATFORM];
-        this.spriteId = 3;
-        this.body = GAMEOBJ.find(o=>o.id == this.spriteId).src;
+
         this.damage = 0; 
           
         this.ignore = [C.ASSETS.SHOT];
@@ -394,14 +396,16 @@ class Player extends GameObject{
 
 class BadGuy extends GameObject{
 
-    constructor(center, width, height, mass, friction, restitution)
+    constructor(center, id)
     {        
-        super(center, mass, friction, restitution, 1, Math.hypot(width, height)/2, width, height);
+        var b = GAMEOBJ.find(o=>o.id == id);
+
+        super(center, b.d, b.f, b.r, 1, Math.hypot(b.w, b.h)/2, b.w, b.h);
         this.type = C.ASSETS.BADGUY;
 
         this.dmgIgnore = [C.ASSETS.PLATFORM];
-        this.spriteId = 20;
-        this.body = GAMEOBJ.find(o=>o.id == this.spriteId).src;
+        this.spriteId = b.id;
+        this.body = b.src;
         this.damage = 0;          
         this.anim = new Anim(16, 2);        
     }
@@ -436,49 +440,6 @@ class BadGuy extends GameObject{
     }
 }
 
-class Boss extends GameObject{
-
-    constructor(center, width, height, mass, friction, restitution)
-    {        
-        super(center, mass, friction, restitution, 1, Math.hypot(width, height)/2, width, height);
-        this.type = C.ASSETS.BADGUY;
-
-        this.dmgIgnore = [C.ASSETS.PLATFORM];
-        this.spriteId = 21;
-        this.body = GAMEOBJ.find(o=>o.id == this.spriteId).src;
-        this.damage = 0;          
-        this.anim = new Anim(16, 2);        
-    }
-
-    Update(dt, ci)
-    {  
-        if(ci.length > 0){
-            if(GAME.plr.C.x < this.C.x){
-                this.V.x -=1.5;
-            }
-            else{
-                this.V.x +=1.5;
-            }
-            this.frame = this.anim.Next(this.frame);
-
-            if(GAME.plr.C.y < (this.C.y-8) && Util.OneIn(8)){
-                this.V.y -=16;
-            }
-            this.V.x *=0.9;
-        }
-
-        if(ci.length != 0){
-             this.G = 0;    
-        }
-
-        super.Update(dt, ci);
-    }
-
-    Render(x,y)
-    {
-        super.Render(x,y);
-    }
-}
 
 class Shot extends GameObject{
 
@@ -507,12 +468,10 @@ class Shot extends GameObject{
 
 class Chaser {
 
-    constructor(offset, stop, speed)
+    constructor(stop, speed)
     {        
         this.pos = new Vector2(0,0);
-        this.offset = offset;
         this.timer = new Timer(2);
-        this.velocityMin = [32,48];
         this.rate = 1;
         this.stop = stop;
         this.enabled = 1;
@@ -522,8 +481,8 @@ class Chaser {
 
     Update(dt)
     {   
-        if(this.pos.x < this.stop){            
-            this.pos.x += this.speed*dt;
+        if(this.pos.x < this.stop){
+           this.pos.x += this.speed*dt;
         }
 
         this.timer.Update(dt);
@@ -535,8 +494,7 @@ class Chaser {
                 );
 
             this.timer.Set(this.rate);
-        }   
-
+        }
     }
 
     Render(x,y)

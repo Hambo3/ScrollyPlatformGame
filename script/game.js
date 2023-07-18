@@ -53,7 +53,7 @@ class Blocky{//TBA
         var l2 = null;
 
         do{
-            stage = x>(w/2) ? 1 : 0;
+            stage = x>(w/2) ? 2 : 1;
              if(this.level>1 && fc>12){
                 fc = 0;
                 var f = FEATURE[Util.RndI(1,7)];
@@ -72,8 +72,8 @@ class Blocky{//TBA
                 var b = t[t.length-1];
                 b = (b==0 || b == 2)
                     ? 1
-                    : Util.OneOf([0,1,2]); //gap plat brk 0 7 9
-                                                        //0 1 2
+                    : Util.OneOf([0,1,2]); //gap plat brk 
+                                                       
                 n = Util.RndI(b==0 ? 1 : 2, b==0 ? 4 : 6);
                 ys = b==0 ? 0 : Util.RndI(-1,2);
                 if(y+ys < h && (l2 == null || l2.y-y>4)){
@@ -144,18 +144,16 @@ class Blocky{//TBA
                 }
                 else if (f==1){
                     t = stgt[stg];
-                    if(Util.OneIn(8)){
+                    if(Util.OneIn(6)){
                         t=stga[stg];
                     }
                 }
 
                  lvl[y][x] = t;
-                //              t==9 && r==0 ? t-1 :    //log 
-                //             t==9 && r==n-1 ? t+1 :  //ends
-                //             t;
+
                 for (var c=y+1; c<h; c++){ 
                     if(t)
-                    map[c][x] = 2;//t==0?map[c][x]:2;
+                    map[c][x] = 2;
                 }
                 x++;
             }
@@ -235,7 +233,7 @@ class Blocky{//TBA
     
 
     IsLeftBehind(x){
-        return x < this.chaser.pos.x-(432*MAP.scale);
+        return x < MAP.Pos.l;//this.chaser.pos.x-(432*MAP.scale);
     }
 
     Start(lvl){
@@ -274,8 +272,7 @@ class Blocky{//TBA
         this.plr.enabled = 0;
         this.plr.damage = ht;
 
-        this.chaser = new Chaser(new Vector2(-(MAP.mapSize.x/2),-100), 
-            MAP.mapSize.x - 200, this.lvlSpeed);
+        this.chaser = new Chaser(MAP.mapSize.x - 200, this.lvlSpeed);
         this.gameObjects.Add(this.chaser);
 
         this.gameMode = C.GAMEMODE.GAME;
@@ -381,8 +378,7 @@ class Blocky{//TBA
             this.lvlScore = ps > this.lvlScore ? ps : this.lvlScore;
             
             if(this.plr.C.x > MAP.mapSize.x - 800 && this.boss == null){
-                this.boss = new Boss(
-                    new Vector2(MAP.mapSize.x - 200, 100), 96, 96, 2, 0, 0);
+                this.boss = new BadGuy(new Vector2(MAP.mapSize.x - 200, 100), 21);
                 this.gameObjects.Add(this.boss);
                 this.boss.enabled = 1;
                 this.boss.damage = 300;
@@ -430,6 +426,8 @@ class Blocky{//TBA
             if(this.gameTimer.enabled){
                 SFX.Text("LEVEL " + this.level,300,240,4);
             }
+
+                      
         }
         else if(this.gameMode == C.GAMEMODE.TITLE){
             //SFX.Box(0,0,800,600, "rgba(100,173,217,0.6)");
