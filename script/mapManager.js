@@ -142,13 +142,6 @@ class MapManger{
         return this.offset;
     }
 
-    ScreenBounds(){
-        var sc = this.screenSize.Clone();
-        sc.Multiply(this.scale);
-        sc.Add(this.offset);
-        return {Min:this.offset, Max:sc};
-    }
-
     PreRender(){
         var sc = this.screenSize.Clone();
         sc.Multiply(this.scale);
@@ -172,18 +165,6 @@ class MapManger{
             this.osCanvas.canvas, 
             0, 0, sc.x, sc.y,
             0, 0, this.screenSize.x, this.screenSize.y
-        );
-    }
-
-    ImageRender(x,y,w,h){
-        var sc = this.screenSize.Clone();
-        sc.Multiply(this.scale);
-
-        this.screenCtx.drawImage
-        (
-            this.osCanvas.canvas, 
-            0, 0, sc.x, sc.y,
-            x, y, w,h
         );
     }
 

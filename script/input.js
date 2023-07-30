@@ -77,19 +77,20 @@ class TouchPad extends GamePad{
     static TouchEnabled = false;
     static tpres = [];
     static cols = ['#000','#999'];
-    static zoneMid = {x:100,y:500};
+    static zoneMid = {x:132,y:500};
     static zones = [
-        {x:0,y:-32,r:32},
-        {x:0,y:32,r:32},
-        {x:-32,y:0,r:32},
-        {x:32,y:0,r:32},
-        {x:520,y:0,r:32},
-        {x:620,y:0,r:32}];
+        {x:0,y:-80,r:64},
+        {x:0,y:80,r:64},
+        {x:-80,y:0,r:64},
+        {x:80,y:0,r:64},
+        {x:520,y:0,r:64},
+        {x:620,y:0,r:64}];
     
     static press = [];
 
-    static Init(canvas, enabled, rend, col){
+    static Init(canvas, enabled, rend, col, b2){
         this.TouchEnabled = enabled;
+        this.b2 = b2;
         if(col){
             this.cols = col;
         }
@@ -126,12 +127,14 @@ class TouchPad extends GamePad{
 
     static Render(){
         if(this.TouchEnabled){
-            this.rend.Circle(this.zoneMid.x, this.zoneMid.y,64, this.cols[0]);
-            this.rend.Circle(this.zoneMid.x, this.zoneMid.y,16, this.cols[0]);
-            this.rend.Circle(this.zoneMid.x+this.zones[4].x, this.zoneMid.y,32, this.cols[0]);
-            this.rend.Circle(this.zoneMid.x+this.zones[5].x, this.zoneMid.y,32, this.cols[0]);
+            this.rend.Circle(this.zoneMid.x, this.zoneMid.y,128, this.cols[0]);
+            this.rend.Circle(this.zoneMid.x, this.zoneMid.y,32, this.cols[0]);
+            this.rend.Circle(this.zoneMid.x+this.zones[4].x, this.zoneMid.y,64, this.cols[0]);
+            if(this.b2){
+                this.rend.Circle(this.zoneMid.x+this.zones[5].x, this.zoneMid.y,64, this.cols[0]);
+            }
             for (var i = 0; i < this.press.length; i++) {
-                this.rend.Circle(this.press[i].x,this.press[i].y,32, this.cols[1]);
+                this.rend.Circle(this.press[i].x,this.press[i].y,64, this.cols[1]);
             }     
         }
     }
@@ -157,7 +160,8 @@ class TouchPad extends GamePad{
         for (var i = 0; i < this.press.length; i++) {
             var p = this.press[i];
             var z = this.zones[indx];
-            var dist = Math.sqrt( ((p.x-(this.zoneMid.x+z.x)) * (p.x-(this.zoneMid.x+z.x)))+((p.y-(this.zoneMid.y+z.y)) * (p.y-(this.zoneMid.y+z.y))) );
+            var dist = Math.sqrt( ((p.x-(this.zoneMid.x+z.x)) * (p.x-(this.zoneMid.x+z.x)))
+                                +((p.y-(this.zoneMid.y+z.y)) * (p.y-(this.zoneMid.y+z.y))) );
             return (dist < 16 + z.r);
         } 
         return 0;

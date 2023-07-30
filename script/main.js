@@ -1,8 +1,4 @@
 
-//https://javascript.info/class-inheritance
-//https://dev.to/nitdgplug/learn-javascript-through-a-game-1beh
-//https://www.minifier.org/
-//"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe C:\z\Git\WG5\index.htm" --allow-file-access-from-files
 var fps = 60;
 var rf = (function(){
   return window.requestAnimationFrame       ||
@@ -40,7 +36,7 @@ var map = {
 	size:{
 		tile:{width:32, height:32},
 		screen:{width:25, height:19},
-		world:{width:100, height:28}
+		world:{width:100, height:32}//220??
 	}
 };
 
@@ -75,7 +71,7 @@ function Start(canvasBody)
 
 		Input.Init(mCtx.canvas, IsTouchDevice, SFX);
 
-		SPRITES = new SpritePreProcessor(null, DEFS.spriteDef);	
+		SPRITES = new SpritePreProcessor(DEFS.spriteDef);	
 
 		preInit();
 	}
@@ -83,39 +79,44 @@ function Start(canvasBody)
 
 function preInit(){
 
-	Generate(0,'s8x2', 104, 8, 2);
-	Generate(0,'s8x4', 104, 8, 4);
-	Generate(1,'s16x1', 128, 16, 1);
-	Generate(1,'s16x2', 128, 16, 2);
-	Generate(1,'s16x4', 128, 16, 4);
-	Generate(2,'s24x4', 48, 24, 4);
-	Generate1(300,32);
+	Gen(0,'s8x2', 2);
+	Gen(0,'s8x4', 4);
+	Gen(1,'s16x1',1);
+	Gen(1,'s16x2',2);
+	Gen(1,'s16x4', 4);
+	Gen(2,'s24x4',4);
+	Gen1(300,48);
 
 	init();
 }
 
 
-function Generate1(w, h){
+function Gen1(w, h){
 	var g = Util.Context(w, h);
-	var gx = new Render(g.ctx);      
+	var gx = new Render(g.ctx);
 
 	var l = SPRITES.Get('log16l', 0);
 	var m = SPRITES.Get('log16', 0);
 	var r = SPRITES.Get('log16r', 0);
+	var sw = m.dim.w;
 	var i=0;
-	gx.Sprite(8+(i*16), 8, l, 1, 0);
+	gx.Sprite(sw/2+(i*sw), sw/2, l, 1, 0);
 	for (i=1; i < 9; i++) {
-		gx.Sprite(8+(i*16), 8, m, 1, 0);
+		gx.Sprite(sw/2+(i*sw), sw/2, m, 1, 0);
 	}
-	gx.Sprite(8+(i*16), 8, r, 1, 0);
+	gx.Sprite(sw/2+(i*sw), sw/2, r, 1, 0);
+
 	SPRITES.assets['spX'] = g.canvas;
 }
 
-function Generate(index, tagname, w, h, sz){
+function Gen(index, tagname, sz){
+	var d = DEFS.spriteData[index];
+	var w = d[0];
+	var h = d[1];
 	var g = Util.Context(w*sz, h*sz);
 	var gx = new Render(g.ctx);      
-	
-	var spr = Util.Unpack(DEFS.spriteData[index]);
+
+	var spr = Util.Unpack(d[2]);
 
 	for (var i = 0; i < spr.length; i++) {
 		if(spr[i]>0){

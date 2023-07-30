@@ -1,10 +1,9 @@
 class SpritePreProcessor{
 
-    constructor(source, definition, onReady){
+    constructor(definition, onReady){
         this.onReady = onReady;
         this.assets = [];
         this.spriteData = definition;
-        this.Init(source);
     }
 
     Get(tag,frame=0, asset){
@@ -22,45 +21,6 @@ class SpritePreProcessor{
         }
         else{
             return this.assets[tag];
-        }
-    }
-
-    Init(spriteSource) {
-        if(spriteSource){
-            var sprites = spriteSource.filter(s => s.src);
-            var numAssets = sprites.length;
-            var t = this;
-            sprites.forEach(function(sheet) 
-            {
-                var a = new Image();   
-
-                a.src = sheet.src;
-                var tag = sheet.tag;
-                a.onload = function() { 
-                    t.assets[tag] = a;
-
-                    if(--numAssets == 0)
-                    {
-                        t.PostProcessing(spriteSource);
-                    }
-                };
-            });
-        }
-    }
-
-    PostProcessing(spriteSource){
-        var sprites = spriteSource.filter(s => s.ref);
-        var t = this;
-        sprites.forEach(function(sheet) 
-        {
-            if(sheet.recol)
-            {
-                t.assets[sheet.tag] = GfxUtil.HSLReplace(t.assets[sheet.ref], sheet.recol);
-            }
-        });   
-
-        if(this.onReady){
-            this.onReady();				
         }
     }
 }
@@ -149,7 +109,7 @@ class Render{
         this.ctx.arc(x, y, r, 0, 2 * Math.PI, false);
         this.ctx.stroke();
     }
-
+    
     Text(str, xs, ys, size, sc, col) {
 
         str = !isNaN(str) ? ""+str : str;

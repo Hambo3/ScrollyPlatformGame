@@ -1,11 +1,9 @@
 var EasingFunctions = {
-    easeInQuad: function (t) { return t * t }
+    easeInQuad: function (t) { return t * t },
+    easeInOutQuad: function (t) { return t < .5 ? 2 * t * t : -1 + (4 - 2 * t) * t }
 }
 
 var Util = {
-    // PercentChance: function(p){
-    //     return Util.RndI(0,100) < p;
-    // },
     OneIn: function(c){
         return Util.RndI(0,c)==0;
     },
@@ -137,39 +135,12 @@ var ObjectPool = function () {
                 return list.filter(l => l.enabled);
             }
         },
-
-        Count: function(all, type){
-            if(type){
-                return (all) ? list.filter(l => type.indexOf(l.type) != -1).length 
-                        : list.filter(l => l.enabled && type.indexOf(l.type) != -1).length;
-            }
-            else{
-                return (all) ? list.length : list.filter(l => l.enabled).length;
-            }
-        },
-        Delete: function(obj){
-            var n = list.filter(l => l != obj);
-            list = n;
-        },
-        Remove: function(type, not) {
-            var n = [];
-            if(not){
-                n = list.filter(l => type.indexOf(l.type) != -1);
-            }
-            else{
-                n = list.filter(l => type.indexOf(l.type) == -1);
-            }
-            
-            list = n;
-        },
         Clear: function(){
             list = [];
         },
-        Select: function(x, y){
-            return list.find(l => 
-                (x> (l.C.x-(l.W/2)) && x < (l.C.x+(l.W/2))) &&
-                (y > (l.C.y-(l.H/2)) && y < (l.C.y+(l.H/2))));
-        },
+        Set: function(g){
+            list = g;
+        }
     }
 };
 
