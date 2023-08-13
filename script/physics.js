@@ -115,6 +115,10 @@ class World{
         {
             return 0;
         }
+        if(s2.ignore && s2.ignore.indexOf(s1.type) != -1)
+        {
+            return 0;
+        }
         else if(!s1.hits || s1.hits.indexOf(s2.type) != -1)
         {
             return this.length(this.substract(s2.C, s1.C)) <= s1.B + s2.B;

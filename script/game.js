@@ -16,8 +16,8 @@ class Blocky{//TBA
         this.introTony = {x:240, y:400, src:'player', sz:0.1, r:0, yv:0, svv:0, yvv:0, lv:0};
         // Gravity
         this.mGravity = new Vector2(0, 100);
-        this.help = {up:1,mv:1,f:1,pu:1, go:0};
-
+        this.help = {up:1,mv:1,f:1,pu:2, go:0, ln:3};
+        this.goal = 200;
         this.Start(0);
     }
 
@@ -132,6 +132,11 @@ class Blocky{//TBA
             
             fc += n;
         }while(x < w);
+
+        this.gameObjects.Add(
+            new StaticBody([],C.ASSETS.WALL, 
+                new Vector2((w*32)+32, (h*32)/2), 32, h*32, 0, 0.2, .2)
+            );
     }
 
     Section(map, lvl, y, x, tt, h, n, stg){
@@ -187,16 +192,30 @@ class Blocky{//TBA
     }
 
     Launch(p, V, id){
+        if(this.help.ln){
+            this.help.ln--;
+            id = this.help.ln ? Util.OneOf([4,5,6]) : 27;
+        }
+        if(!id)
+        {
+            if(!this.plr.shot || this.boss){
+                if(Util.OneIn(4)){
+                    id = 27;
+                }
+            }
+        } 
+
         var d = BlockFactory.Create(id || Util.OneOf([4,5,6,13,14,27]), p, 0);
         d.V = V; 
         d.v = Util.Rnd(1)-0.5;
         this.gameObjects.Add(d);
     }
 
-    AddObject(id, tp, p, V){
+    AddObject(id, tp, p, V,s=1){
         var d = new Shot(id, tp, p);
         d.V = V;    
         d.v = Util.Rnd(1)-0.5;
+        d.size = s;
         this.gameObjects.Add(d);
     }
 
@@ -249,7 +268,7 @@ class Blocky{//TBA
     }
 
     Start(lvl){
-        var speeds = [60,80,90,100,120];
+        var speeds = [60,60, 80,90,100,120];
         this.gameTimer = new Timer(1);
         this.gameObjects.Clear();
         var mapData = this.CreateMap(MAP.planSize.x, MAP.planSize.y);
@@ -279,11 +298,14 @@ class Blocky{//TBA
             this.gameObjects.Add(s);
         }
         var ht = lvl ? this.plr.damage : 500;
+        var sht = lvl ? this.plr.shots : 0;
         this.plr = new Player( Input,
             new Vector2(this.plrStart, (MAP.planSize.y-7)*32), 32, 32, 2, 0, 0);
         this.gameObjects.Add(this.plr);
         this.plr.enabled = 0;
         this.plr.damage = ht;
+        this.plr.extra = ht>=450;
+        this.plr.shots = sht;
 
         this.chaser = new Chaser(0, MAP.mapSize.x - 200, this.lvlSpeed, 2);
         this.chaser.launch = !this.demo;
@@ -304,6 +326,7 @@ class Blocky{//TBA
         MAP.scale = 1;
         
         this.boss = null;
+        this.goal = 200;
         if(lvl){
             //MUSIC.Play();
         }
@@ -371,9 +394,16 @@ class Blocky{//TBA
                 this.help.go = this.chaser.pos.x > 400 && this.chaser.pos.x < 600;
 
                 if(this.help.pu && !this.help.mv && !this.help.up){
-                    this.Launch(new Vector2(this.plr.C.x, 0), new Vector2(12,0), 27);
+                    this.chaser.launch = 1;
+                    // this.Launch(new Vector2(this.plr.C.x, 0), new Vector2(12,0), 
+                    // this.help.pu == 2 ? 4 : 27);
                     this.help.pu = 0;
-                }                
+                }
+
+                //behold the spell of invincibility
+                if(Input.IsSingle("i") && Input.IsSingle("q")){
+                    this.plr.enabled = 0;
+                }            
             } 
 
             if(this.plr.C.x < (this.chaser.pos.x-340)){
@@ -404,6 +434,7 @@ class Blocky{//TBA
             }
 
             if(this.gameMode == C.GAMEMODE.LEVELEND){
+                //fireworks
                 if(Util.OneIn(32)){
                     var p = new Vector2(Util.RndI(MAP.Pos.l+100, MAP.Pos.r-100),
                             Util.RndI(this.plr.C.y-200, this.plr.C.y-400));
@@ -415,7 +446,7 @@ class Blocky{//TBA
                 }        
             }
             else{
-                if(this.plr.C.x > MAP.mapSize.x - 200){
+                if(this.plr.C.x > MAP.mapSize.x - this.goal && this.boss && this.boss.dead){
                     this.LevelEnd();
                 }                
             }
@@ -464,9 +495,13 @@ class Blocky{//TBA
 
         if(this.gameMode != C.GAMEMODE.TITLE){
             SFX.Text("DISTANCE: " + Util.NumericText(this.score+this.lvlScore,5),16, 4, 3, 0, "#fff");
-            SFX.Text("HEALTH: " + Util.NumericText(parseInt(this.plr.damage),5),240, 4, 3, 0, "#fff"); 
-            SFX.Text("SHOT:   " + Util.NumericText(parseInt(this.plr.shots),3),240, 24, 3, 0, "#fff"); 
-            SFX.Text("SPEED: " + this.level + ":" + this.lvlSpeed,440, 4, 3, 0, "#fff");   
+            SFX.Text("TONY" ,234, 4, 3, 0, "#fff"); 
+            SFX.Box(298,4,
+                Util.Remap(0,500, 0,100, this.plr.damage)
+                , 15, '#0F0');
+
+            SFX.Text("SHOT: " + Util.NumericText(parseInt(this.plr.shots),3),
+                            234, 24, 3, 0, "#fff"); 
         }
 
         if(this.gameMode == C.GAMEMODE.GAME)
@@ -482,41 +517,42 @@ class Blocky{//TBA
                     }
                     
                     if(this.help.mv){
-                        SFX.Text("RUN         A D  LEFT RIGHT",360,260,4);                    
+                        SFX.Text("RUN         A D  LEFT RIGHT",360,260,4);
                     }                
                     else if(this.help.up){
                         SFX.Text("JUMP         W       UP",360,260,4);
                     }
-                    else if(!this.plr.shots && !this.help.pu && this.help.f){
-                        SFX.Text("COLLECT",360,260,4);                    
+                    else if(this.help.ln){
+                        SFX.Text("AVOID",360,260,4);
+                    } 
+                    else if(!this.plr.shots && !this.help.ln && this.help.f){
+                        SFX.Text("COLLECT",360,260,4);
                     }                 
                     else if(this.plr.shots && this.help.f){
-                        SFX.Text("THROW       SPACE",360,260,4);                    
+                        SFX.Text("THROW       SPACE",360,260,4);
                     }                     
                 }
 
             }
-            SFX.Text("CHASE: " + this.chaser.pos.x, 600, 4, 3, 0, "#fff");   
-
-            SFX.Text("PLR: " + this.plr.C.x, 600, 24, 3, 0, "#fff");  
 
             if(this.boss){
-                SFX.Text("BOSS: " + this.boss.damage, 600, 4, 3, 0, "#fff");   
+                SFX.Text("BOSS", 520, 4, 3, 0, "#fff");  
+                SFX.Box(402,4,
+                    Util.Remap(0,100, 0,100, this.boss.damage)
+                    ,15, '#F00'); 
             }
         }
         else if(this.gameMode == C.GAMEMODE.TITLE){
-            //SFX.Box(0,0,800,600, "rgba(100,173,217,0.6)");
             SFX.Sprite(this.introTony.x, this.introTony.y, 
                 SPRITES.Get(this.introTony.src, 0), this.introTony.sz, this.introTony.r);
 
             SFX.Text("TONY",240,100,16,1); 
-            SFX.Text("FIRE TO START",300,240,4);               
+            if(this.introTony.lv || this.introTony.sz > 16){ 
+                SFX.Text("FIRE TO START",300,240,4);  
+            }
         }else if(this.gameMode == C.GAMEMODE.LEVELEND){
-            //SFX.Box(0,0,800,600, "rgba(100,173,217,0.6)");
             SFX.Text("YOUR A REAL HERO NOW",100,100,4,1); 
-            //SFX.Text("FIRE TO CONTINUE",300,240,4); 
         }else if(this.gameMode == C.GAMEMODE.GAMEOVER){
-            //SFX.Box(0,0,800,600, "rgba(100,173,217,0.6)");
             SFX.Text("GAME OVER",200,100,8,1);   
         }
 

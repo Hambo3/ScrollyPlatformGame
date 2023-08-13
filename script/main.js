@@ -36,7 +36,7 @@ var map = {
 	size:{
 		tile:{width:32, height:32},
 		screen:{width:25, height:19},
-		world:{width:100, height:32}//220??
+		world:{width:220, height:32}//220??
 	}
 };
 

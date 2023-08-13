@@ -10,7 +10,8 @@ var C = {
         PLATFORM:9,
         BADGUY:10,
         BOSS:11,
-        PICKUPSHOT:12
+        PICKUPSHOT:12,
+        PICKUPHAT:13
     },   
     GAMEMODE:
     {
@@ -280,7 +281,12 @@ var GAMEOBJ = [
         id:28, src:'rock16',
         s:0, t:C.ASSETS.BALL,
         w:8, h:8, d:4, f:1, r:1, dm:0
-    }    
+    },
+    {
+        id:29, src:'crown',
+        s:0, t:C.ASSETS.BLOCK,
+        w:28, h:12, d:4, f:0.5, r:1, dm:0
+    }  
 ];
 
 class BlockFactory

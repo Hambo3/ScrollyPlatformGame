@@ -227,6 +227,7 @@ class Circle extends GameObject{
         this.enabled = 1;
         this.type = type;
 
+        this.ignore = [C.ASSETS.WALL];
         this.spriteId = sprId;
         this.body = GAMEOBJ.find(o=>o.id == sprId).src;
         this.damage = dmg;
@@ -256,6 +257,7 @@ class Rectangle extends GameObject{
         this.enabled = 1;       
         this.type = type;
 
+        this.ignore = [C.ASSETS.WALL];
         this.spriteId = sprId;
         this.body = GAMEOBJ.find(o=>o.id == sprId).src;
         this.damage = dmg;
@@ -280,11 +282,20 @@ class Rectangle extends GameObject{
                 p.V.x = this.V.x;
             }
             else if(this.spriteId == 27){
-                for (var i = 0; i < 3; i++) {
-                    var p =new PickUp(this.C.CloneAdd(new Vector2(Util.RndI(-8,8), Util.RndI(-8,8))), 
-                                        28, C.ASSETS.PICKUPSHOT);
-                    p.V = this.V.Clone();                                           
-                    GAME.gameObjects.Add(p);                 
+                var s = 0;//Util.RndI(0,2);
+
+                if(s==0){
+                    for (var i = 0; i < 3; i++) {
+                        var p =new PickUp(this.C.CloneAdd(new Vector2(Util.RndI(-8,8), Util.RndI(-8,8))), 
+                                            28, C.ASSETS.PICKUPSHOT);
+                        p.V = new Vector2(this.V.x, -Util.Rnd(24));
+                        GAME.gameObjects.Add(p);
+                    }
+                }
+                else if(s==1){
+                    var p =new PickUp(this.C.Clone(), 29, C.ASSETS.PICKUPHAT);
+                    p.V = new Vector2(this.V.x, -Util.Rnd(24));
+                    GAME.gameObjects.Add(p);
                 }
             }
         }
@@ -307,7 +318,7 @@ class Player extends GameObject{
         this.spriteId = b.id;
 
         this.body = b.src;
-        this.dmgIgnore = [C.ASSETS.PLATFORM];
+        this.dmgIgnore = [C.ASSETS.PLATFORM, C.ASSETS.PICKUPSHOT, C.ASSETS.PICKUPHAT];
 
         this.damage = 0; 
         this.extra = true;
@@ -316,6 +327,7 @@ class Player extends GameObject{
         this.input = input;
         this.anim = new Anim(16, 2);     
         this.shots = 0;   
+        this.hat = SPRITES.Get('hat', 0);
     }
 
     Update(dt, ci)
@@ -329,6 +341,13 @@ class Player extends GameObject{
                     this.collidedWith.push(perp);
                     perp.enabled = 0;
                     this.shots+=1;                    
+                }
+                else if(perp.enabled && perp.type == C.ASSETS.PICKUPHAT){
+                    this.collidedWith.push(perp);
+                    perp.enabled = 0;
+                    this.hat = SPRITES.Get('crown', 0);
+                    this.extra = true;
+                    this.damage = 500;
                 }
                 
             }
@@ -367,7 +386,7 @@ class Player extends GameObject{
 
         if(this.extra && this.damage < 450){
             this.extra = null;
-            GAME.AddObject(26, C.ASSETS.EXTRA, this.C.Clone(), 
+            GAME.AddObject(26, C.ASSETS.EXTRA, this.C.Clone().AddXY(0, -16), 
                             new Vector2(Util.RndI(-16,16),-32));
         }
     }
@@ -376,12 +395,10 @@ class Player extends GameObject{
     {
         super.Render(x,y);
 
-        if(this.extra){
-            var hat = SPRITES.Get('hat', 0);
-
+        if(this.extra){          
             var pt = this.C.CloneAdd({x:0,y:-16});
             pt.rotate(this.C, this.G);
-            GFX.Sprite(pt.x-x, pt.y-y, hat, this.size, this.G);            
+            GFX.Sprite(pt.x-x, pt.y-y, this.hat, this.size, this.G);            
         }
     }
 }
@@ -402,65 +419,89 @@ class BadGuy extends GameObject{
         this.damage = 0;
         this.anim = new Anim(16, 2);
         this.throw = 0;
+        this.skill = 1;
+        this.rates = [100,80,60];
+
+        this.hat = this.extra ? SPRITES.Get('hat', 0) : null;
+        this.dead = 0;
     }
 
     Update(dt, ci)
     {  
-        if(ci.length > 0){
-            if(this.type == C.ASSETS.BOSS){
-                if(GAME.plr.C.Distance(this.C) < 100){
-                    if(GAME.plr.C.x < this.C.x){
-                        this.V.x -=1.1;
+        super.Update(dt, ci);
+
+        if(!this.dead){
+
+            if(!this.enabled){
+                this.dead = 1;
+                this.enabled = 1;
+                this.V.y = -24;
+                this.v = 0.5;
+
+                if(this.hat)
+                {
+                    this.hat = null;
+                    GAME.AddObject(26, C.ASSETS.EXTRA, this.C.Clone().AddXY(0, -48), 
+                                new Vector2(Util.RndI(-16,16),-32), 2);
+                }
+            }
+
+            if(ci.length > 0){
+                if(this.type == C.ASSETS.BOSS){
+                    if(GAME.plr.C.Distance(this.C) < 128){
+                        if(GAME.plr.C.x < this.C.x){
+                            this.V.x -=1.1;
+                        }
+                        else{
+                            this.V.x +=1.1;
+                        }
                     }
                     else{
-                        this.V.x +=1.1;
+                        if(this.throw == 0){
+                            if(Util.OneIn(this.rates[this.skill])){
+                                this.throw = 1;
+                            }
+                        }
+                        if(this.throw == 1 && Util.OneIn(this.rates[this.skill])){
+                            this.throw = 0;
+                            GAME.Launch(this.C.Clone().AddXY(4,-76), 
+                                    new Vector2(-Util.RndI(24, 40),-40), 13);
+                        }
+                    }
+                }
+                else{
+                    if(GAME.plr.C.x < this.C.x){
+                        this.V.x -=1.5;
+                    }
+                    else{
+                        this.V.x +=1.5;
                     }
 
                     if(GAME.plr.C.y < (this.C.y-8) && Util.OneIn(8)){
                         this.V.y -=16;
                     }
                 }
-                else{
-                    if(this.throw == 0){
-                        if(Util.OneIn(100)){
-                            this.throw = 1;
-                        }
-                    }
-                    if(this.throw == 1 && Util.OneIn(100)){
-                        this.throw = 0;
-                        GAME.Launch(this.C.Clone().AddXY(4,-68), 
-                                new Vector2(-Util.RndI(24, 40),-40), 13);
-                    }
-                }
-            }
-            else{
-                if(GAME.plr.C.x < this.C.x){
-                    this.V.x -=1.5;
-                }
-                else{
-                    this.V.x +=1.5;
-                }
 
-                if(GAME.plr.C.y < (this.C.y-8) && Util.OneIn(8)){
-                    this.V.y -=16;
-                }
+                this.frame = this.anim.Next(this.frame);
+
+                this.V.x *=0.9;
             }
 
-            this.frame = this.anim.Next(this.frame);
-
-            this.V.x *=0.9;
-        }
-
-        if(ci.length != 0){
-             this.G = 0;    
-        }
-
-        super.Update(dt, ci);
+            if(ci.length != 0){
+                this.G = 0;    
+            } 
+        }       
     }
 
     Render(x,y)
     {
         super.Render(x,y);
+
+        if(this.hat){
+            var pt = this.C.CloneAdd({x:0,y:-48});
+            pt.rotate(this.C, this.G);
+            GFX.Sprite(pt.x-x, pt.y-y, this.hat, 2, this.G);
+        }
 
         if(this.extra){
 
@@ -470,9 +511,9 @@ class BadGuy extends GameObject{
             if(this.throw==1){
                 var rk = SPRITES.Get('rock32', 0);
 
-                var pt = this.C.CloneAdd({x:4,y:-64});                
-                GFX.Sprite(pt.x-x, pt.y-y, rk, this.size, this.G);            
-            }          
+                var pt = this.C.CloneAdd({x:4,y:-64});
+                GFX.Sprite(pt.x-x, pt.y-y, rk, this.size, this.G);
+            }
         }
 
     }
@@ -505,6 +546,7 @@ class PickUp extends GameObject{
         super.Render(x,y);
     }
 }
+
 
 class Shot extends GameObject{
 
