@@ -328,10 +328,10 @@ class Blocky{//TBA
         this.boss = null;
         this.goal = 200;
         if(lvl){
-            //MUSIC.Play();
+            MUSIC.Play();
         }
         else{
-            //MUSIC.Stop();
+            MUSIC.Stop();
         }
     } 
     NextLevel(){
@@ -553,7 +553,7 @@ class Blocky{//TBA
         }else if(this.gameMode == C.GAMEMODE.LEVELEND){
             SFX.Text("YOUR A REAL HERO NOW",100,100,4,1); 
         }else if(this.gameMode == C.GAMEMODE.GAMEOVER){
-            SFX.Text("GAME OVER",200,100,8,1);   
+            SFX.Text("THY GAME IS OVER",200,100,8,1);   
         }
 
         Input.Render();

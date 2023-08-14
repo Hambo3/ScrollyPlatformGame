@@ -282,7 +282,7 @@ class Rectangle extends GameObject{
                 p.V.x = this.V.x;
             }
             else if(this.spriteId == 27){
-                var s = 0;//Util.RndI(0,2);
+                var s = Util.RndI(0,2);
 
                 if(s==0){
                     for (var i = 0; i < 3; i++) {
@@ -320,14 +320,17 @@ class Player extends GameObject{
         this.body = b.src;
         this.dmgIgnore = [C.ASSETS.PLATFORM, C.ASSETS.PICKUPSHOT, C.ASSETS.PICKUPHAT];
 
-        this.damage = 0; 
-        this.extra = true;
-          
+        this.damage = 0;          
         this.ignore = [C.ASSETS.EXTRA];
         this.input = input;
         this.anim = new Anim(16, 2);     
-        this.shots = 0;   
-        this.hat = SPRITES.Get('hat', 0);
+        this.shots = 0;  
+        this.hat = 1; 
+        this.hats = [
+            0,
+            {y:-6, s:SPRITES.Get('hat', 0)},
+            {y:-16, s:SPRITES.Get('crown', 0)}
+        ];
     }
 
     Update(dt, ci)
@@ -345,8 +348,7 @@ class Player extends GameObject{
                 else if(perp.enabled && perp.type == C.ASSETS.PICKUPHAT){
                     this.collidedWith.push(perp);
                     perp.enabled = 0;
-                    this.hat = SPRITES.Get('crown', 0);
-                    this.extra = true;
+                    this.hat = 2;
                     this.damage = 500;
                 }
                 
@@ -384,10 +386,10 @@ class Player extends GameObject{
              this.G = 0;    
         }
 
-        if(this.extra && this.damage < 450){
-            this.extra = null;
-            GAME.AddObject(26, C.ASSETS.EXTRA, this.C.Clone().AddXY(0, -16), 
+        if(this.hat && this.damage < 450){            
+            GAME.AddObject(26, C.ASSETS.EXTRA, this.C.Clone().AddXY(0, this.hats[this.hat].y), 
                             new Vector2(Util.RndI(-16,16),-32));
+            this.hat = 0;
         }
     }
 
@@ -395,10 +397,10 @@ class Player extends GameObject{
     {
         super.Render(x,y);
 
-        if(this.extra){          
-            var pt = this.C.CloneAdd({x:0,y:-16});
+        if(this.hat){
+            var pt = this.C.CloneAdd({x:0,y:this.hats[this.hat].y});
             pt.rotate(this.C, this.G);
-            GFX.Sprite(pt.x-x, pt.y-y, this.hat, this.size, this.G);            
+            GFX.Sprite(pt.x-x, pt.y-y, this.hats[this.hat].s, this.size, this.G);
         }
     }
 }
