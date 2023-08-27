@@ -35,7 +35,7 @@ var Util = {
     },
     //int min to max-1
     RndI: function (min, max){
-        return parseInt(Math.random() * (max-min)) + min;
+        return ((Math.random() * (max-min))|0) + min;
     },
     Rnd: function (max){
         return Math.random() * max;
@@ -49,7 +49,7 @@ var Util = {
     UnpackWorldObjects: function(m){
 
         var objs = [];
-        try {
+
             for (var r = 0; r < m.length; r++) {
                 var last = {};
                 var l = 0;
@@ -80,9 +80,7 @@ var Util = {
                 }
                 objs[i].t = t;
             }            
-        } catch (error) {
-            console.log("UnpackWorldObjects"+{error});
-        }
+
 
         return objs;
     },
@@ -92,7 +90,7 @@ var Util = {
         var sec = zip.split("|");
         for(var i = 0; i < sec.length; i++){
             pts= sec[i].split(",");
-            v = parseInt(pts[0]);
+            v = (pts[0])|0;
             map.push(v);
             if(pts.length > 1){                
                 for(var p = 1; p < pts[1]; p++){

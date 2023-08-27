@@ -36,7 +36,7 @@ var map = {
 	size:{
 		tile:{width:32, height:32},
 		screen:{width:25, height:19},
-		world:{width:220, height:32}//220??
+		world:{width:80, height:32}//220??
 	}
 };
 
@@ -52,15 +52,7 @@ function Start(canvasBody)
 		var b = document.getElementById(canvasBody);
     	b.appendChild(mCtx.canvas);
 
-		MAP = new MapManger(mCtx.ctx, map, new Vector2(0,0));
-
-		if(map.size.world.height > map.size.world.width){
-			MAP.maxScale = map.size.world.width/map.size.screen.width;
-		}
-		else{
-			MAP.maxScale = map.size.world.height/map.size.screen.height;
-		}
-
+		MAP = new MapManger(mCtx.ctx, {w:220, h:32}, {w:25, h:19}, 32);
 
 		MUSIC = new TinyMusic();
 		AUDIO = new TinySound();
@@ -120,8 +112,8 @@ function Gen(index, tagname, sz){
 
 	for (var i = 0; i < spr.length; i++) {
 		if(spr[i]>0){
-			var c = parseInt(i % w);
-			var r = parseInt(i / w);
+			var c = (i % w)|0;
+			var r = (i / w)|0;
 			gx.Box(c*sz, r*sz, sz, sz, DEFS.spritePal[spr[i]]);
 		}
 	}

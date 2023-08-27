@@ -1,18 +1,19 @@
 class MapManger{
 
-    constructor(ctx, md, b){
+    constructor(ctx, world, screen, tile){
         this.mapData = null;
         this.lvlData = null;
         this.offset = new Vector2();
-        this.planSize = new Vector2(md.size.world.width, md.size.world.height);
-        this.mapSize = new Vector2(md.size.world.width, md.size.world.height);
-        this.mapSize.Multiply(md.size.tile.width);
-        this.screenSize = new Vector2(md.size.screen.width, md.size.screen.height);
-        this.screenSize.Multiply(md.size.tile.width);
 
-        this.bounds = new Vector2(this.mapSize.x+b.x,this.mapSize.y+b.y);
+        this.planSize = new Vector2(world.w, world.h);
+        this.mapSize = new Vector2(world.w, world.h);
+        this.mapSize.Multiply(tile);
+        this.screenSize = new Vector2(screen.w, screen.h);
+        this.screenSize.Multiply(tile);
 
-        this.tileSize = md.size.tile.width;
+        this.bounds = new Vector2(this.mapSize.x,this.mapSize.y);
+
+        this.tileSize = tile;
         this.scale = 1;
         this.maxScale = 1;
         this.minScale = 0.3;
@@ -25,13 +26,30 @@ class MapManger{
         this.screenCtx.imageSmoothingEnabled = false;        
 
         this.rend = new Render(this.tileCanvas.ctx);
+
+        this.SetScale();
     }
 
+    SetScale(){
+        if(this.mapSize.y > this.mapSize.x){
+			this.maxScale = this.mapSize.x/this.screenSize.x;
+		}
+		else{
+			this.maxScale = this.mapSize.y/this.screenSize.y;
+		}
+    }
     get Pos(){
-        return {l:this.offset.x, r:this.offset.x+(this.screenSize.x*this.scale)};
+        return {l:this.offset.x, 
+            r:this.offset.x+(this.screenSize.x*this.scale),
+            m:this.offset.x+((this.screenSize.x*this.scale)/2)};
     }
 
-    Init(reset, bgData, lvlData){
+    Init(reset, bgData, lvlData, w){
+        this.planSize.x = w;
+        this.mapSize.x = w*this.tileSize;
+        this.SetScale();
+        this.bounds.x = this.mapSize.x;
+        
         if(reset){            
             this.rend.Box(0,0,this.mapSize.x,this.mapSize.y);
         }
@@ -41,25 +59,18 @@ class MapManger{
     }
 
     Tile(t){
-        try {
-            for (var i = 0; i < t.t.length; i++) {
-                var c = t.t[i];
-                var r = t.y;
-                this.lvlData[r][c] = 0;
 
-                var p =this.mapData[r][c];
-                var pt = new Vector2(c * this.tileSize, r * this.tileSize); 
-                var s = GAMEOBJ.find(o=>o.id == p);
-                if(s.col){
-                    this.rend.Box(pt.x, pt.y,32,32,s.col);
-                }
-                else{
-                    this.rend.Sprite(pt.x+16, pt.y+16, SPRITES.Get(s.src, 0), 1, 0);
-                }
-            }          
-        } catch (error) {
-            console.log("Tile" + {error});
-        }         
+        for (var i = 0; i < t.t.length; i++) {
+            var c = t.t[i];
+            var r = t.y;
+            this.lvlData[r][c] = 0;
+
+            var p =this.mapData[r][c];
+            var pt = new Vector2(c * this.tileSize, r * this.tileSize); 
+            var s = GAMEOBJ.find(o=>o.id == p);
+            this.Add(pt.x, pt.y, s.col, s.src);
+        }          
+        
     }
 
     TileInit(){
@@ -76,24 +87,23 @@ class MapManger{
                 var pt = new Vector2(c * this.tileSize, r * this.tileSize);   
 
                 var s = GAMEOBJ.find(o=>o.id == p);
-                if(s.col){
-                    this.rend.Box(pt.x, pt.y,32,32,s.col);
-                }
-                else{
-                    this.rend.Sprite(pt.x+16, pt.y+16, SPRITES.Get(s.src, 0), 1, 0);
-                }
+                this.Add(pt.x, pt.y, s.col, s.src);
 
                 if(l>0){
                     s = GAMEOBJ.find(o=>o.id == l);
-                    if(s.col){
-                        this.rend.Box(pt.x, pt.y,32,32,s.col);
-                    }
-                    else{
-                        this.rend.Sprite(pt.x+16, pt.y+16, SPRITES.Get(s.src, 0), 1, 0);
-                    }
+                    this.Add(pt.x, pt.y, s.col, s.src);
                 }
             }
         }           
+    }
+
+    Add(x,y, col, src){
+        if(col){
+            this.rend.Box(x, y,32,32,col);
+        }
+        else{
+            this.rend.Sprite(x+16, y+16, SPRITES.Get(src, 0), 1, 0);
+        }
     }
 
     Zoom(rate){
