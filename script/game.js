@@ -438,8 +438,6 @@ class Blocky{//TBA
                             C.ASSETS.BOSS);
                 this.gameObjects.Add(this.boss);
                 this.boss.Set(100);
-                //this.boss.enabled = 1;
-                //this.boss.damage = 100;
                 this.chaser.rate *=0.8;                
             }
 

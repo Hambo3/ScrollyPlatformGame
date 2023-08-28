@@ -163,13 +163,16 @@ class GameObject extends RigidShape{
                     this.collidedWith.indexOf(perp) == -1){
                     this.collidedWith.push(perp);
                     if(cx.I>3){
-                        this.damage -= cx.I;
-                        AUDIO.Play(C.SND.crash);
+                        this.damage -= cx.I;                        
                         if(this.damage <= 0){
+                            AUDIO.Play(C.SND.splinter);
                             this.enabled = 0;
                             if(this.particle){
                                 GAME.ParticleGen(this.C.Clone(), this.particle);
                             }
+                        }
+                        else{
+                            AUDIO.Play(C.SND.crash);
                         }
                     }
                 } 
@@ -346,6 +349,7 @@ class Player extends GameObject{
                     perp.enabled = 0;
                     this.hat = 2;
                     this.damage = 500;
+                    AUDIO.Play(C.SND.tada);
                 }
                 
             }
@@ -449,6 +453,7 @@ class BadGuy extends GameObject{
                 this.face = 1;
                 if(this.hat)
                 {
+                    AUDIO.Play(C.SND.boss);
                     this.hat = null;
                     this.hatP =new PickUp(this.C.Clone().AddXY(0, -48), 29, C.ASSETS.PICKUPHAT);
                     this.hatP.V = new Vector2(this.V.x, -Util.Rnd(24));
