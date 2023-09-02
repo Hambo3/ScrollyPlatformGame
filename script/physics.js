@@ -24,36 +24,36 @@ class World{
     Update(objects, dt)
     {  
         var clx = [];
-        //var collisionInfo = {}; // final collision between two shapes
+        //var ci = {}; // final collision between two shapes
         for(var k = this.smoothing; k--;){            
             for(var i=0, l=objects.length; i<l; i++){   
                 for(var j=i+1; j<l; j++){
-                    var collisionInfo = {D:null,N:null,S:null,E:null,I:null};  
+                    var ci = {D:null,N:null,S:null,E:null,I:null};  
                     // Test bounds
                     var p = this.boundTest(objects[i], objects[j]);
                     if(p){
                         // Test collision
-                        if(this.testCollision(objects[i], objects[j], collisionInfo)){
+                        if(this.testCollision(objects[i], objects[j], ci)){
                             
                             // Make sure the normal is always from object[i] to object[j]
-                            if(this.dot(collisionInfo.N, 
+                            if(this.dot(ci.N, 
                                     this.substract(objects[j].C, objects[i].C)) < 0)
                             {
-                                collisionInfo = {
-                                    D: collisionInfo.D,
-                                    N: this.scale(collisionInfo.N, -1),
-                                    S: collisionInfo.E,
-                                    E: collisionInfo.S,
-                                    I: collisionInfo.I
+                                ci = {
+                                    D: ci.D,
+                                    N: this.scale(ci.N, -1),
+                                    S: ci.E,
+                                    E: ci.S,
+                                    I: ci.I
                                 };
                             }
                             
                             // Resolve collision
-                            this.resolveCollision(objects[i], objects[j], collisionInfo);
+                            this.resolveCollision(objects[i], objects[j], ci);
                         }
-                        if(collisionInfo.D != null){
+                        if(ci.D != null){
                             //if(k==this.smoothing-2){
-                                clx.push({C:collisionInfo, P1:objects[i], P2:objects[j]});
+                                clx.push({C:ci, P1:objects[i], P2:objects[j]});
                             //}
                            }
                     } 
@@ -71,13 +71,13 @@ class World{
     }
 
     // Collision info setter
-    setInfo (collision, D, N, S,I,T)
+    setInfo (c, D, N, S,I,T)
     {
-        collision.D = D; // depth
-        collision.N = N; // normal
-        collision.S = S; // start
-        collision.E = this.add(S, this.scale(N, D)); // end
-        collision.I = I;
+        c.D = D; // depth
+        c.N = N; // normal
+        c.S = S; // start
+        c.E = this.add(S, this.scale(N, D)); // end
+        c.I = I;
     }
 
     // Move a shape along a vector
@@ -138,7 +138,7 @@ class World{
     }
 
     // Find the axis of least penetration between two rects
-    findAxisLeastPenetration (rect, otherRect, collisionInfo) {
+    findAxisLeastPenetration (rect, otherRect, ci) {
         var n;
         var i;
         var j;
@@ -146,8 +146,8 @@ class World{
         var bestDistance = 1e9;
         var bestIndex = -1;
         var hasSupport = 1;
-        var tmpSupportPoint;
-        var tmpSupportPointDist;
+        var tmpSP;//tmpSupportPoint
+        var tmpSPD;//tmpSupportPointDist
 
         for(i = 4; hasSupport && i--;){
             
@@ -162,8 +162,8 @@ class World{
             var vToEdge;
             var projection;
 
-            tmpSupportPointDist = -1e9;
-            tmpSupportPoint = -1;
+            tmpSPD = -1e9;
+            tmpSP = -1;
             
             // check each vector of other object
             for(j = 4; j--;){
@@ -172,25 +172,25 @@ class World{
                 
                 // find the longest distance with certain edge
                 // dir is -n direction, so the distance should be positive     
-                if(projection > 0 && projection > tmpSupportPointDist){
-                    tmpSupportPoint = otherRect.X[j];
-                    tmpSupportPointDist = projection;
+                if(projection > 0 && projection > tmpSPD){
+                    tmpSP = otherRect.X[j];
+                    tmpSPD = projection;
                 }
             }
 
-            hasSupport = (tmpSupportPoint !== -1);
+            hasSupport = (tmpSP !== -1);
             
             // get the shortest support point depth
-            if(hasSupport && tmpSupportPointDist < bestDistance){
-                bestDistance = tmpSupportPointDist;
+            if(hasSupport && tmpSPD < bestDistance){
+                bestDistance = tmpSPD;
                 bestIndex = i;
-                supportPoint = tmpSupportPoint;
+                supportPoint = tmpSP;
             }
         }
 
         if(hasSupport){      
             // all four directions have support point
-            this.setInfo(collisionInfo, bestDistance, rect.N[bestIndex], 
+            this.setInfo(ci, bestDistance, rect.N[bestIndex], 
                 this.add(supportPoint, this.scale(rect.N[bestIndex], bestDistance)));
         }
 
@@ -198,7 +198,7 @@ class World{
     }
   
     // Test collision between two shapes
-    testCollision (c1, c2, collisionInfo) {
+    testCollision (c1, c2, ci) {
         
         // Circle vs circle
         if(!c1.T && !c2.T){
@@ -211,7 +211,7 @@ class World{
                 // overlapping but not same position
                 var normalFrom2to1 = this.normalize(this.scale(vFrom1to2, -1));
                 var radiusC2 = this.scale(normalFrom2to1, c2.B);
-                this.setInfo(collisionInfo, rSum - dist, 
+                this.setInfo(ci, rSum - dist, 
                     this.normalize(vFrom1to2), this.add(c2.C, radiusC2),
                     (c1.V.Length()*c1.M) + (c2.V.Length()*c2.M));
             //}
@@ -221,11 +221,11 @@ class World{
             else {
                 
                 if(c1.B > c2.B){
-                setInfo(collisionInfo, rSum, Vec2(0, -1), add(c1.C, Vec2(0, c1.B)));
+                setInfo(ci, rSum, Vec2(0, -1), add(c1.C, Vec2(0, c1.B)));
                 }
                 
                 else {
-                setInfo(collisionInfo, rSum, Vec2(0, -1), add(c2.C, Vec2(0, c2.B)));
+                setInfo(ci, rSum, Vec2(0, -1), add(c2.C, Vec2(0, c2.B)));
                 }
             }
             */
@@ -239,27 +239,27 @@ class World{
         {
             var status1 = 0;
             var status2 = 0;
-            var collisionInfoR1 = {}; // temp collision: rect 1 vs rect 2
-            var collisionInfoR2 = {}; // temp collision: rect 2 vs rect 1
+            var ciR1 = {}; // temp collision: rect 1 vs rect 2
+            var ciR2 = {}; // temp collision: rect 2 vs rect 1
             // find Axis of Separation for both rectangles
-            status1 = this.findAxisLeastPenetration(c1, c2, collisionInfoR1);
+            status1 = this.findAxisLeastPenetration(c1, c2, ciR1);
             if(status1)
             {
-                status2 = this.findAxisLeastPenetration(c2, c1, collisionInfoR2);
+                status2 = this.findAxisLeastPenetration(c2, c1, ciR2);
                 if(status2)
                 {                
                     // if both of rectangles are overlapping, choose the shorter normal as the normal     
-                    if(collisionInfoR1.D < collisionInfoR2.D)
+                    if(ciR1.D < ciR2.D)
                     {
-                        this.setInfo(collisionInfo, collisionInfoR1.D, collisionInfoR1.N, 
-                            this.substract(collisionInfoR1.S, 
-                                this.scale(collisionInfoR1.N, collisionInfoR1.D))
+                        this.setInfo(ci, ciR1.D, ciR1.N, 
+                            this.substract(ciR1.S, 
+                                this.scale(ciR1.N, ciR1.D))
                                 ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M) );                       
                     }                    
                     else 
                     {                           
-                        this.setInfo(collisionInfo, collisionInfoR2.D, 
-                            this.scale(collisionInfoR2.N, -1), collisionInfoR2.S
+                        this.setInfo(ci, ciR2.D, 
+                            this.scale(ciR2.N, -1), ciR2.S
                             ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M) );
                     }
                 }
@@ -308,7 +308,7 @@ class World{
         
             if(inside){      
                 // the center of circle is inside of c1angle
-                this.setInfo(collisionInfo, c2.B - bestDistance, c1.N[nearestEdge], 
+                this.setInfo(ci, c2.B - bestDistance, c1.N[nearestEdge], 
                     this.substract(circ2Pos, this.scale(c1.N[nearestEdge], c2.B))
                     ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M));
             }
@@ -330,7 +330,7 @@ class World{
                         return;
                     }
                     normal = this.normalize(v1);
-                    this.setInfo(collisionInfo, c2.B - dis, normal, 
+                    this.setInfo(ci, c2.B - dis, normal, 
                         this.add(circ2Pos, this.scale(normal, -c2.B))
                         ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M));
                 }
@@ -349,7 +349,7 @@ class World{
                             return;
                         }
                         normal = this.normalize(v1);
-                        this.setInfo(collisionInfo, c2.B - dis, normal, 
+                        this.setInfo(ci, c2.B - dis, normal, 
                             this.add(circ2Pos, this.scale(normal, -c2.B))
                             ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M));
                     }
@@ -357,7 +357,7 @@ class World{
                         
                         // the center of circle is in face region of face[nearestEdge]
                         if(bestDistance < c2.B){
-                            this.setInfo(collisionInfo, c2.B - bestDistance, c1.N[nearestEdge], 
+                            this.setInfo(ci, c2.B - bestDistance, c1.N[nearestEdge], 
                                 this.substract(circ2Pos, 
                                     this.scale(c1.N[nearestEdge], c2.B))
                                     ,(c1.V.Length()*c1.M) + (c2.V.Length()*c2.M));
@@ -373,22 +373,22 @@ class World{
         }
     }
   
-    resolveCollision (s1, s2, collisionInfo) {
+    resolveCollision (s1, s2, ci) {
         if(!s1.M && !s2.M){
             return;
         }
 
         // correct positions
-        var num = collisionInfo.D / (s1.M + s2.M) * .8; // .8 = poscorrectionrate = percentage of separation to project objects
-        var correctionAmount = this.scale(collisionInfo.N, num);
-        var n = collisionInfo.N;
-        this.moveShape(s1, this.scale(correctionAmount, -s1.M));
-        this.moveShape(s2, this.scale(correctionAmount, s2.M));
+        var num = ci.D / (s1.M + s2.M) * .8; // .8 = poscorrectionrate = percentage of separation to project objects
+        var cA = this.scale(ci.N, num);//correctionAmount
+        var n = ci.N;
+        this.moveShape(s1, this.scale(cA, -s1.M));
+        this.moveShape(s2, this.scale(cA, s2.M));
 
-        // the direction of collisionInfo is always from s1 to s2
+        // the direction of ci is always from s1 to s2
         // but the Mass is inversed, so start scale with s2 and end scale with s1
-        var start = this.scale(collisionInfo.S, s2.M / (s1.M + s2.M));
-        var end = this.scale(collisionInfo.E, s1.M / (s1.M + s2.M));
+        var start = this.scale(ci.S, s2.M / (s1.M + s2.M));
+        var end = this.scale(ci.E, s1.M / (s1.M + s2.M));
         var p = this.add(start, end);
         // r is vector from center of object to collision point
         var r1 = this.substract(p, s1.C);
@@ -397,13 +397,13 @@ class World{
         // newV = V + v cross R
         var v1 = this.add(s1.V, new Vector2(-1 * s1.v * r1.y, s1.v * r1.x));
         var v2 = this.add(s2.V, new Vector2(-1 * s2.v * r2.y, s2.v * r2.x));
-        var relativeVelocity = this.substract(v2, v1);
+        var rV = this.substract(v2, v1);//relativeVelocity
 
         // Relative velocity in normal direction
-        var rVelocityInNormal = this.dot(relativeVelocity, n);
+        var rVinN = this.dot(rV, n);//rVelocityInNormal
 
         // if objects moving apart ignore
-        if(rVelocityInNormal > 0){
+        if(rVinN > 0){
             return;
         }
 
@@ -417,7 +417,7 @@ class World{
 
         // Calc impulse scalar
         // the formula of jN can be found in http://www.myphysicslab.com/collision.html
-        var jN = (-(1 + newRestituion) * rVelocityInNormal) / 
+        var jN = (-(1 + newRestituion) * rVinN) / 
                 (s1.M + s2.M + R1crossN * R1crossN * s1.I + R2crossN * R2crossN * s2.I);
 
         // impulse is in direction of normal ( from s1 to s2)
@@ -429,11 +429,11 @@ class World{
         s2.V = this.add(s2.V, this.scale(impulse, s2.M));
         s1.v -= R1crossN * jN * s1.I;
         s2.v += R2crossN * jN * s2.I;
-        var tangent = this.scale(this.normalize(this.substract(relativeVelocity, 
-            this.scale(n, this.dot(relativeVelocity, n)))), -1);
+        var tangent = this.scale(this.normalize(this.substract(rV, 
+            this.scale(n, this.dot(rV, n)))), -1);
         var R1crossT = this.cross(r1, tangent);
         var R2crossT = this.cross(r2, tangent)
-        var jT = (-(1 + newRestituion) * this.dot(relativeVelocity, tangent) * newFriction) / (s1.M + s2.M + R1crossT * R1crossT * s1.I + R2crossT * R2crossT * s2.I);
+        var jT = (-(1 + newRestituion) * this.dot(rV, tangent) * newFriction) / (s1.M + s2.M + R1crossT * R1crossT * s1.I + R2crossT * R2crossT * s2.I);
 
         // friction should less than force in normal direction
         if(jT > jN){

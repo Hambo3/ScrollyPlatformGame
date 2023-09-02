@@ -180,6 +180,13 @@ class GameObject extends RigidShape{
         }        
     }
 
+    Legs(x, y){
+        var rk = SPRITES.Get('legs', this.altF);
+        var pt = this.C.CloneAdd({x:0,y:10});
+        pt.rotate(this.C, this.G);
+        GFX.Sprite(pt.x-x, pt.y-y, rk, this.size, this.G);
+    }
+
     get Body() {
         return SPRITES.Get(this.body, this.frame);
     }
@@ -199,7 +206,7 @@ class StaticBody extends GameObject{
         this.enabled = 1;
         this.type = type;
 
-        this.dmgIgnore = [C.ASSETS.PLAYER];
+        this.dmgIgnore = [7];
         this.deadly = 0;
         this.isStatic = 1;
         this.damage = dmg||0;
@@ -231,7 +238,7 @@ class Circle extends GameObject{
         this.enabled = 1;
         this.type = type;
 
-        this.ignore = [C.ASSETS.WALL];
+        this.ignore = [5];
         this.spriteId = sprId;
         this.body = GAMEOBJ.find(o=>o.id == sprId).src;
         this.damage = dmg;
@@ -261,7 +268,7 @@ class Rectangle extends GameObject{
         this.enabled = 1;       
         this.type = type;
 
-        this.ignore = [C.ASSETS.WALL];
+        this.ignore = [5];
         this.spriteId = sprId;
         this.body = GAMEOBJ.find(o=>o.id == sprId).src;
         this.damage = dmg;
@@ -278,7 +285,7 @@ class Rectangle extends GameObject{
 
         if(!this.enabled){
             if(this.spriteId == 30){
-                var p = new BadGuy(this.C.Clone(), 20, C.ASSETS.BADGUY);
+                var p = new BadGuy(this.C.Clone(), Util.OneOf([20,31]), 10);
                 GAME.gameObjects.Add(p);
                 p.Set(50);
                 p.V.y = -(8*dt);
@@ -288,10 +295,12 @@ class Rectangle extends GameObject{
                 var s = 0;
 
                 if(s==0){ //shots
-                    GAME.help.c=1;
+                    if(GAME.help.c == null){
+                        GAME.help.c = new Timer(4);
+                    }
                     for (var i = 0; i < 3; i++) {
                         var p =new PickUp(this.C.CloneAdd(new Vector2(Util.RndI(-8,8), Util.RndI(-8,8))), 
-                                            28, C.ASSETS.PICKUPSHOT);
+                                            28, 12);
                         p.V = new Vector2(this.V.x, -Util.Rnd(24));
                         GAME.gameObjects.Add(p);
                     }
@@ -313,23 +322,24 @@ class Player extends GameObject{
         var b = GAMEOBJ.find(o=>o.id == 3);
 
         super(center, b.d, b.f, b.r, 1, Math.hypot(b.w, b.h)/2, b.w, b.h);
-        this.type = C.ASSETS.PLAYER;
+        this.type = 7;
         this.spriteId = b.id;
 
         this.body = b.src;
-        this.dmgIgnore = [C.ASSETS.PLATFORM, C.ASSETS.PICKUPSHOT, C.ASSETS.PICKUPHAT];
+        this.dmgIgnore = [9, 12, 13];
 
         this.damage = 0;          
-        this.ignore = [C.ASSETS.EXTRA];
+        this.ignore = [8];
         this.input = input;
         this.anim = new Anim(16, 2);     
         this.shots = 0;  
-        this.hat = 1; 
+        this.hat = 0; 
         this.hats = [
             0,
             {y:-6, s:SPRITES.Get('hat', 0)},
             {y:-16, s:SPRITES.Get('crown', 0)}
         ];
+        this.altF = 0;
     }
 
     Update(dt, ci)
@@ -339,15 +349,15 @@ class Player extends GameObject{
         if(ci.length > 0){
             for (var i = 0; i < ci.length; i++) {
                 var perp = ci[i].P1 != this ? ci[i].P1 : ci[i].P2;
-                if(perp.enabled && perp.type == C.ASSETS.PICKUPSHOT){
+                if(perp.enabled && perp.type == 12){
                     this.collidedWith.push(perp);
                     perp.enabled = 0;
                     this.shots+=1;
                 }
-                else if(perp.enabled && perp.type == C.ASSETS.PICKUPHAT){
+                else if(perp.enabled && (perp.type == 13 || perp.type == 14)){
                     this.collidedWith.push(perp);
                     perp.enabled = 0;
-                    this.hat = 2;
+                    this.hat = perp.type == 13 ? 2 :1;
                     this.damage = 500;
                     AUDIO.Play(C.SND.tada);
                 }
@@ -362,7 +372,7 @@ class Player extends GameObject{
                     this.V.x +=2;
                 } 
 
-                this.frame = this.anim.Next(this.frame, () =>{
+                this.altF = this.anim.Next(this.altF, () =>{
                     AUDIO.Play(C.SND.step);
                 });                
             }
@@ -378,7 +388,7 @@ class Player extends GameObject{
         if(this.shots > 0 && this.input.Fire1()){
             this.shots --;
             GAME.help.f = 0;
-            GAME.AddObject(15, C.ASSETS.EXTRA, this.C.Clone(), 
+            GAME.AddObject(15, 8, this.C.Clone(), 
                     new Vector2(32,-40));
         }
 
@@ -387,15 +397,16 @@ class Player extends GameObject{
         }
 
         if(this.hat && this.damage < 450){            
-            GAME.AddObject(26, C.ASSETS.EXTRA, this.C.Clone().AddXY(0, this.hats[this.hat].y), 
+            GAME.AddObject(26, 8, this.C.Clone().AddXY(0, this.hats[this.hat].y), 
                             new Vector2(Util.RndI(-16,16),-32));
             this.hat = 0;
         }
     }
-
     Render(x,y)
     {
         super.Render(x,y);
+
+        this.Legs(x,y);
 
         if(this.hat){
             var pt = this.C.CloneAdd({x:0,y:this.hats[this.hat].y});
@@ -413,8 +424,8 @@ class BadGuy extends GameObject{
 
         super(center, b.d, b.f, b.r, 1, Math.hypot(b.w, b.h)/2, b.w, b.h);
         this.type = type;
-        this.extra = this.type == C.ASSETS.BOSS;
-        this.dmgIgnore = [C.ASSETS.PLATFORM];
+        this.extra = this.type == 11;
+        this.dmgIgnore = [9];
         
         this.spriteId = b.id;
         this.body = b.src;
@@ -430,6 +441,7 @@ class BadGuy extends GameObject{
         this.jmpDelay = 80;
         this.hatP = null;
         this.face = 0;
+        this.altF = 0;
     }
 
     Set(d, s){
@@ -455,14 +467,14 @@ class BadGuy extends GameObject{
                 {
                     AUDIO.Play(C.SND.boss);
                     this.hat = null;
-                    this.hatP =new PickUp(this.C.Clone().AddXY(0, -48), 29, C.ASSETS.PICKUPHAT);
+                    this.hatP =new PickUp(this.C.Clone().AddXY(0, -48), 29, 13);
                     this.hatP.V = new Vector2(this.V.x, -Util.Rnd(24));
                     GAME.gameObjects.Add(this.hatP);
                 }
             }
 
             if(ci.length > 0){
-                if(this.type == C.ASSETS.BOSS){
+                if(this.type == 11){
                     var pd = GAME.plr.C.Distance(this.C);
                     if(this.C.x < GAME.plr.C.x || pd < 64){
                         if(GAME.plr.C.x < this.C.x){
@@ -488,7 +500,7 @@ class BadGuy extends GameObject{
                             var d = GAME.Launch(this.C.Clone().AddXY(4,-40), 
                                     new Vector2(-s,-40), 13);
 
-                            d.ignore.push(C.ASSETS.BOSS);
+                            d.ignore.push(11);
                         }
                     }
                 }
@@ -505,7 +517,7 @@ class BadGuy extends GameObject{
                     }
                 }
 
-                this.frame = this.anim.Next(this.frame);
+                this.altF = this.anim.Next(this.altF);
 
                 this.V.x *=0.9;
             }
@@ -522,6 +534,8 @@ class BadGuy extends GameObject{
     Render(x,y)
     {
         super.Render(x,y);
+
+        this.Legs(x,y);
 
         if(this.hat){
             var pt = this.C.CloneAdd({x:0,y:-50});
@@ -553,12 +567,12 @@ class PickUp extends GameObject{
     constructor(center, id, type)
     {        
         var b = GAMEOBJ.find(o=>o.id == id);
-        var t = b.t == C.ASSETS.BLOCK;
+        var t = b.t == 3;
         var r = t ? Math.hypot(b.w, b.h)/2 : b.w;
         super(center, b.d, b.f, b.r, t ,r, b.w, b.h);
 
         this.type = type;
-        this.dmgIgnore = [C.ASSETS.PLATFORM];
+        this.dmgIgnore = [9];
         this.spriteId = b.id;
         this.body = b.src;
         this.damage = 0;
@@ -582,7 +596,7 @@ class Shot extends GameObject{
     constructor(id, type, center)
     {        
         var b = GAMEOBJ.find(o=>o.id == id);
-        var t = b.t == C.ASSETS.BLOCK;
+        var t = b.t == 3;
         var r = t ? Math.hypot(b.w, b.h)/2 : b.w;
         super(center, b.d, b.f, b.r, t ,r, b.w, b.h);
 
@@ -613,15 +627,14 @@ class Chaser {
         this.rate = rate;
         this.stop = stop;
         this.enabled = 1;
-        this.launch = 0;
-        this.type = C.ASSETS.NONE;
+        this.type = 0;
         this.speed = speed || 60;   
         this.badChance = 5;     
     }
 
     Update(dt)
     {   
-        if(this.launch){        
+      
             if(this.pos.x < this.stop){
                 this.pos.x += this.speed*dt;
             }
@@ -637,7 +650,10 @@ class Chaser {
                     id = 30;
                     x = p.r+300;
                     v = 0;
-                };
+                }
+                else if (!GAME.plr.shots){
+                    id = Util.OneIn(3) ? 27 :id;
+                }
 
                 if(GAME.help.ln){
                     GAME.help.ln--;
@@ -652,7 +668,6 @@ class Chaser {
 
                 this.timer.Set(this.rate);
             }
-        }
     }
 
     Render(x,y)

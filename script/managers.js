@@ -102,18 +102,18 @@ class Render{
         this.ctx.fillRect(x, y, w, h);
     }
 
-    Circle(x,y,r,c){
-        this.ctx.beginPath();
-        this.ctx.lineWidth = 1;
-        this.ctx.strokeStyle = c;
-        this.ctx.arc(x, y, r, 0, 2 * Math.PI, false);
-        this.ctx.stroke();
-    }
+    // Circle(x,y,r,c){
+    //     this.ctx.beginPath();
+    //     this.ctx.lineWidth = 1;
+    //     this.ctx.strokeStyle = c;
+    //     this.ctx.arc(x, y, r, 0, 2 * Math.PI, false);
+    //     this.ctx.stroke();
+    // }
     
     Text(str, xs, ys, size, sc, col) {
 
         str = !isNaN(str) ? ""+str : str;
-        this.ctx.fillStyle = col || '#000000';
+        this.ctx.fillStyle = col || '#000';
 
         var cr = xs;
         var blockSize = new Vector2(0,0);

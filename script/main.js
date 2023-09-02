@@ -61,7 +61,7 @@ function Start(canvasBody)
 		GFX = new Render(MAP.osCanvas.ctx);	
 		SFX = new Render(MAP.screenCtx, wd, ht);	
 
-		Input.Init(mCtx.canvas, IsTouchDevice, SFX);
+		//Input.Init(mCtx.canvas, IsTouchDevice, SFX);
 
 		SPRITES = new SpritePreProcessor(DEFS.spriteDef);	
 
@@ -77,7 +77,7 @@ function preInit(){
 	Gen(1,'s16x2',2);
 	Gen(1,'s16x4', 4);
 	Gen(2,'s24x4',4);
-	Gen1(300,48);
+	Gen1(300,80);
 
 	init();
 }
@@ -97,6 +97,12 @@ function Gen1(w, h){
 		gx.Sprite(sw/2+(i*sw), sw/2, m, 1, 0);
 	}
 	gx.Sprite(sw/2+(i*sw), sw/2, r, 1, 0);
+
+	l = SPRITES.Get('player', 0);
+	m = SPRITES.Get('legs', 0);
+
+	gx.Sprite(16, 40, l, 1, 0);
+	gx.Sprite(16, 50, m, 1, 0);
 
 	SPRITES.assets['spX'] = g.canvas;
 }

@@ -6,18 +6,18 @@ class Blocky{//TBA
         this.score = 0;
         this.lvlScore = 0;
         this.plrStart = 80;
-        this.demo = 1;
         this.gameTimer = new Timer(0);
         this.gameMode = C.GAMEMODE.TITLE;
         this.level = 0;
         this.offset;
         this.gameObjects = new ObjectPool();
         this.particles = new ObjectPool(); 
-        this.iT = {x:240, y:400, src:'player', sz:0.1, r:0, yv:0, svv:0, yvv:0, lv:0};
+        this.iT = {p:new Vector2(240, 400), src:'ip', sz:0.1, r:0, yv:0, svv:0, yvv:0, lv:0};
+        this.rnd = 0;
         // Gravity
         this.mGravity = new Vector2(0, 100);
-        this.help = {up:1,mv:1,f:1,pu:2, go:0, ln:3, c:0};
-        this.goal = 200;
+        this.help = {up:1,mv:1,f:1,pu:2, go:0, ln:3, c:null};
+        this.super = 0;
         this.Start(0);
     }
 
@@ -41,8 +41,87 @@ class Blocky{//TBA
         var t = f.t;
         var n = f.n[0];
         var x=this.Section(map, lvl, y, 0, t, h, n,0);
+        
         return x;
     }
+
+    Start(lvl){
+        var lvls = [
+            {cs:50, cr:2, w:80, f:0, t:[0,0,0]},//title
+            {cs:60, cr:2, w:120, f:0, t:[0,0,1]},
+            {cs:70, cr:1.8, w:140, f:5, t:[0,1,2]},
+            {cs:80, cr:1.6, w:180, f:7, t:[1,0,2]},
+            {cs:80, cr:1.4, w:100, f:9, t:[1,1,2]},
+            {cs:80, cr:1.3, w:220, f:9, t:[0,0,2]},
+            {cs:80, cr:1.2, w:220, f:9, t:[1,0,2]},
+            {cs:80, cr:1.2, w:220, f:9, t:[1,2,2]},
+            {cs:80, cr:1.2, w:220, f:9, t:[2,2,2]}
+        ];
+
+        var lvlInfo = lvl > lvls.length ? lvls[lvls.length-1] : lvls[lvl];
+        this.gameTimer = new Timer(2);
+        this.gameObjects.Clear();
+        
+        var mapData = this.CreateMap(lvlInfo.w, MAP.planSize.y);
+        var levelData = [];
+        this.CreateMapRows(levelData,lvlInfo.w,0,MAP.planSize.y,0)
+
+        if(lvl==0){
+            var x = this.TitleLevel(mapData, levelData, -6, lvlInfo.w, MAP.planSize.y);
+        }       
+         else{
+            this.CreateLevel(mapData, levelData, -6, lvlInfo, MAP.planSize.y);            
+        }
+
+        MAP.Init(true, mapData, levelData, lvlInfo.w);
+
+        var blocks = Util.UnpackWorldObjects(levelData);
+
+        for (var i = 0; i < blocks.length; i++) 
+        {
+            var b = blocks[i];
+            var w = b.w*32;
+            var s = new StaticBody(b, 9, 
+                new Vector2((b.x*32)+w/2, (b.y*32)+16), w, 32, 0, 0.2, .2, b.d); 
+            this.gameObjects.Add(s);
+        }
+        var ht = lvl ? this.plr.damage : 500;
+        var sht = lvl ? this.plr.shots : 0;
+        this.plr = new Player( Input,
+            new Vector2(this.plrStart, (MAP.planSize.y-7)*32), 32, 32, 2, 0, 0);
+        this.gameObjects.Add(this.plr);
+        this.plr.enabled = 0;
+        this.plr.damage = ht;
+        this.plr.extra = ht>=450;
+        this.plr.shots = sht;
+        this.plr.hat = 1;
+        this.chaser = new Chaser(0, MAP.mapSize.x - 200, lvlInfo.cs, lvlInfo.cr);
+        this.gameObjects.Add(this.chaser);
+
+        this.gameMode = C.GAMEMODE.GAME;
+        this.plr.enabled = 1;
+
+        if(!lvl){
+            this.gameMode = C.GAMEMODE.TITLE;
+            this.score = 0;    
+            this.plr.enabled = 0;
+        }
+        
+        this.level = lvl;
+        this.lvlScore = 0;
+        MAP.scale = 1;
+        
+        this.boss = null;
+
+        this.rnd = Util.RndI(0,2);
+
+        if(this.level){
+            MUSIC.Play();
+        }
+        else{
+            MUSIC.Stop();
+        }
+    } 
 
     CreateLevel(map, lvl, l, info, h){
         var w = info.w;
@@ -137,7 +216,7 @@ class Blocky{//TBA
         }while(x < w);
 
         this.gameObjects.Add(
-            new StaticBody([],C.ASSETS.WALL, 
+            new StaticBody([],5, 
                 new Vector2((w*32)+16, (h*32)/2), 32, h*32, 0, 0.2, .2)
             );
     }
@@ -225,7 +304,7 @@ class Blocky{//TBA
             [-2,2, -2,-2, 2,-2, 2,2],
             [-12,-4, 12,-4, -8,4],
             [-14,-1, 0,-4, 12,0, -10,4],
-            [0,-8, 8,8, -8,8]
+            [0,-16, 16,16, -16,16]
         ];
 
         for (var i = 0; i < n; i++) {
@@ -258,99 +337,30 @@ class Blocky{//TBA
         return x < MAP.Pos.l-64;
     }
 
-    Start(lvl){
-        var lvls = [
-            {cs:50, cr:2, w:80, f:0, t:[0,0,0]},//practice
-            {cs:60, cr:1.2, w:100, f:0, t:[0,0,1]},
-            {cs:70, cr:1.2, w:120, f:5, t:[0,1,2]},
-            {cs:80, cr:1.2, w:220, f:7, t:[1,0,2]},
-            {cs:80, cr:1.2, w:220, f:9, t:[1,1,2]}
-        ];
-
-        var lvlInfo = lvl > lvls.length ? lvls[lvls.length-1] : lvls[lvl];
-        this.gameTimer = new Timer(1);
-        this.gameObjects.Clear();
-        
-        var mapData = this.CreateMap(lvlInfo.w, MAP.planSize.y);
-        var levelData = [];
-        this.CreateMapRows(levelData,lvlInfo.w,0,MAP.planSize.y,0)
-
-        if(this.demo || lvl==0)
-        {
-            var x = this.TitleLevel(mapData, levelData, -6, lvlInfo.w, MAP.planSize.y);
-            var p = new PickUp(new Vector2((x-4)*32, (MAP.planSize.y-6.2)*32), 29, 
-                            C.ASSETS.PICKUPHAT);
-            p.M = 0;
-            p.A = new Vector2(0, 0);
-            p.I = 0;
-            this.gameObjects.Add(p);
-        }        
-        else{
-            this.CreateLevel(mapData, levelData, -6, lvlInfo, MAP.planSize.y);            
-        }
-
-        MAP.Init(true, mapData, levelData, lvlInfo.w);
-
-        var blocks = Util.UnpackWorldObjects(levelData);
-
-        for (var i = 0; i < blocks.length; i++) 
-        {
-            var b = blocks[i];
-            var w = b.w*32;
-            var s = new StaticBody(b, C.ASSETS.PLATFORM, 
-                new Vector2((b.x*32)+w/2, (b.y*32)+16), w, 32, 0, 0.2, .2, b.d); 
-            this.gameObjects.Add(s);
-        }
-        var ht = lvl ? this.plr.damage : 500;
-        var sht = lvl ? this.plr.shots : 0;
-        this.plr = new Player( Input,
-            new Vector2(this.plrStart, (MAP.planSize.y-7)*32), 32, 32, 2, 0, 0);
-        this.gameObjects.Add(this.plr);
-        this.plr.enabled = 0;
-        this.plr.damage = ht;
-        this.plr.extra = ht>=450;
-        this.plr.shots = sht;
-
-        this.chaser = new Chaser(0, MAP.mapSize.x - 200, lvlInfo.cs, lvlInfo.cr);
-        this.chaser.launch = !this.demo;
-        this.gameObjects.Add(this.chaser);
-
-        this.gameMode = C.GAMEMODE.GAME;
-        this.plr.enabled = 1;
-
-        if(!lvl){
-            this.gameMode = C.GAMEMODE.TITLE;
-            this.score = 0;    
-            this.plr.enabled = 0;
-        }
-        if(!this.demo){
-            this.level = lvl;
-        }
-        this.lvlScore = 0;
-        MAP.scale = 1;
-        
-        this.boss = null;
-        this.goal = 200;
-        if(this.level){
-            MUSIC.Play();
-        }
-        else{
-            MUSIC.Stop();
-        }
-    } 
     NextLevel(){
-        this.score += this.lvlScore;
-        this.level ++;
-        this.Start(this.level);
+        this.score += this.lvlScore;        
+        if(this.level == 8){
+            this.gameMode = C.GAMEMODE.KING;
+            this.gameTimer = new Timer(8);
+        }
+        else{
+            this.level ++;
+            this.Start(this.level);
+        }
     }
+
     LevelEnd(){
         this.gameMode = C.GAMEMODE.LEVELEND;
-        this.gameTimer = new Timer(4);
-        this.demo = 0;
+        this.gameTimer = new Timer(8);
     }
     GameOver(){
-        this.gameMode = C.GAMEMODE.GAMEOVER;
-        this.gameTimer = new Timer(4);        
+        if(this.super){
+            this.LevelEnd();
+        }
+        else{
+            this.gameMode = C.GAMEMODE.GAMEOVER;
+            this.gameTimer = new Timer(8);
+        }
     }
     Quit(){
         this.gameMode = C.GAMEMODE.TITLE;
@@ -370,6 +380,9 @@ class Blocky{//TBA
     Update(dt)
     {   
         this.gameTimer.Update(dt);
+        if(this.help.c){
+            this.help.c.Update(dt);
+        }
 
         this.offset = MAP.ScrollTo(new Vector2(
             this.plr.C.x > this.chaser.pos.x ? this.plr.C.x : this.chaser.pos.x, 
@@ -377,7 +390,7 @@ class Blocky{//TBA
 
         if(this.gameMode == C.GAMEMODE.TITLE){
             if(Input.Fire1()){
-                this.iT = {x:240, y:400, src:'player', sz:1, r:0,lv:1};
+                this.iT = {p:new Vector2(240, 400), src:'ip', sz:1, r:0,lv:1};
                 this.Start(1);
             }
             if(this.iT.lv == 0){
@@ -387,44 +400,31 @@ class Blocky{//TBA
                     this.iT.sz += EasingFunctions.easeInQuad(this.iT.svv*dt);
                     this.iT.r += 14.5*dt;
 
-                    this.iT.y-= EasingFunctions.easeInOutQuad(this.iT.yvv*dt);
+                    this.iT.p.y-= EasingFunctions.easeInOutQuad(this.iT.yvv*dt);
                     if(this.iT.sz>=16){
                         AUDIO.Play(C.SND.crash);
                     }                
                 }
-                else if (this.iT.y<990){
+                else if (this.iT.p.y<990){
                     this.iT.yv += 0.1;
-                    this.iT.y += EasingFunctions.easeInQuad(this.iT.yv*dt);
+                    this.iT.p.y += EasingFunctions.easeInQuad(this.iT.yv*dt);
                 }                
             }
 
         }else if(this.gameMode == C.GAMEMODE.GAME 
             || this.gameMode == C.GAMEMODE.GAMEOVER
-            || this.gameMode == C.GAMEMODE.LEVELEND){
+            || this.gameMode == C.GAMEMODE.LEVELEND
+            || this.gameMode == C.GAMEMODE.KING){
 
+            this.help.go = this.level ==1 && this.chaser.pos.x > 400 && this.chaser.pos.x < 600;
 
-            if(this.demo){
-                this.help.go = this.chaser.pos.x > 400 && this.chaser.pos.x < 600;
-
-                if(this.help.pu && !this.help.mv && !this.help.up){
-                    this.chaser.launch = 1;
-
-                    this.help.pu = 0;
-                }
-
-                if(GAME.help.c && this.plr.shots){
-                    GAME.help.c = 0;
-                }
-                //behold the spell of invincibility
-                if(Input.IsSingle("i") && Input.IsSingle("q")){
-                    this.plr.enabled = 0;
-                }  
-                
-                if(this.plr.hat == 2 )
-                {
-                    this.LevelEnd();
-                }  
-            } 
+            if(GAME.help.c != null && this.plr.shots){
+                GAME.help.c.enabled = 0;
+            }
+            //behold the spell of invincibility
+            if(Input.IsSingle("i") && Input.IsSingle("q")){
+                this.super = !this.super;
+            }  
 
             if(this.boss){
                 this.Zoom(this.plr.C.Distance(this.boss.C) > 400);
@@ -434,8 +434,7 @@ class Blocky{//TBA
             }
 
             if(this.plr.C.x > MAP.mapSize.x - 800 && this.boss == null){
-                this.boss = new BadGuy(new Vector2(MAP.mapSize.x - 200, 100), 21, 
-                            C.ASSETS.BOSS);
+                this.boss = new BadGuy(new Vector2(MAP.mapSize.x - 200, 100), 21, 11);
                 this.gameObjects.Add(this.boss);
                 this.boss.Set(100);
                 this.chaser.rate *=0.8;                
@@ -444,7 +443,7 @@ class Blocky{//TBA
             var objects = this.gameObjects.Get();
 
             // Compute collisions
-            var p = this.gameObjects.Get([C.ASSETS.NONE],1);
+            var p = this.gameObjects.Get([0],1);
           
             var clx = PHYSICS.Update(p, dt);
 
@@ -460,12 +459,31 @@ class Blocky{//TBA
                         var p = new Vector2(Util.RndI(MAP.Pos.l+100, MAP.Pos.r-100),
                                 Util.RndI(this.plr.C.y-200, this.plr.C.y-400));
                         
-                        this.ParticleGen(p, {t:[3],col:[14,18,25]}, 16);
+                        this.ParticleGen(p, {t:[3],col:[5,27,12,18]}, 16);
                     }
                 }
+
+                if(this.gameTimer.enabled){
+                    if(this.gameTimer.Value < 5 && Input.Fire1()){
+                        this.NextLevel();
+                    }
+                }  
+
                 if(!this.gameTimer.enabled){
                     this.NextLevel();
                 }        
+            }
+            else if(this.gameMode == C.GAMEMODE.KING){
+                if(Util.OneIn(32)){
+                    var p = new Vector2(Util.RndI(MAP.Pos.l+100, MAP.Pos.r-100),
+                            Util.RndI(this.plr.C.y-200, this.plr.C.y-400));
+                    
+                    this.ParticleGen(p, {t:[3],col:[5,27,12,18]}, 16);
+                }
+
+                if(!this.gameTimer.enabled){
+                    this.Quit();
+                } 
             }
             else{
                 if(this.boss && (this.plr.hat == 2 || !this.boss.enabled && !this.boss.hatP.enabled) )
@@ -484,14 +502,9 @@ class Blocky{//TBA
             this.lvlScore = ps > this.lvlScore ? ps : this.lvlScore;          
 
             if(this.gameMode == C.GAMEMODE.GAME && !this.plr.enabled){
-                if(this.demo){
-                    this.LevelEnd();
-                }
-                else{
-                    this.GameOver();
-                }
+                this.GameOver();
             }
-            if(this.gameMode == C.GAMEMODE.GAMEOVER){
+            if(this.gameMode == C.GAMEMODE.GAMEOVER || this.gameMode == C.GAMEMODE.KING){
                 if(!this.gameTimer.enabled){
                     this.Quit();
                 }            
@@ -518,97 +531,92 @@ class Blocky{//TBA
 
         if(this.gameMode != C.GAMEMODE.TITLE){
             SFX.Text("DISTANCE: " + Util.NumericText(this.score+this.lvlScore,5),16, 4, 3, 0, "#fff");
-            SFX.Text("TONY" ,234, 4, 3, 0, "#fff"); 
+            SFX.Text("TONY" ,234, 4, 3, 0, this.super ? "#f00" : "#fff"); 
             SFX.Box(298,4,
                 Util.Remap(0,500, 0,100, this.plr.damage)
                 , 15, '#0F0');
 
-            SFX.Text("SHOT: " + Util.NumericText(this.plr.shots,3),
+            SFX.Text("ROCKS: " + Util.NumericText(this.plr.shots,3),
                             234, 24, 3, 0, "#fff"); 
         }
 
+        var b = BOSSES[this.level]; 
+
+        var g = "#82b";
+        var d = "#719";
         if(this.gameMode == C.GAMEMODE.GAME)
-        {               
+        {           
             if(this.gameTimer.enabled){
-                SFX.Text(BOSSES[this.level][0],300,240,4);
+                SFX.Text(b[0],200,140,6,0,g);
             }
             else{
-
-                if(this.demo){
-                    if(this.help.go){
-                        SFX.Text("GO",320,120,12,1);
-                        SFX.Text(">",520,120,12,0);
-                    }
-                    
-                    if(this.help.mv){
-                        SFX.Text("RUN         A D  LEFT RIGHT",360,260,4);
-                    }                
-                    else if(this.help.up){
-                        SFX.Text("JUMP         W       UP",360,260,4);
-                    }
-                    else if(this.help.ln){
-                        SFX.Text("AVOID",360,260,4);
-                    } 
-                    else if(!this.plr.shots && this.help.c){
-                        SFX.Text("COLLECT",360,260,4);
-                    }                 
-                    else if(this.plr.shots && this.help.f){
-                        SFX.Text("THROW       SPACE",360,260,4);
-                    }                     
+                if(this.help.go){
+                    SFX.Text("GO",320,120,12,1,d);
+                    SFX.Text(">",520,120,12,0,d); 
                 }
+                
+                if(this.help.mv){
+                    SFX.Text("RUN      [A D  LEFT RIGHT]",360,260,4,0,d);
+                }                
+                else if(this.help.up){
+                    SFX.Text("JUMP     [W    UP]",360,260,4,0,d);
+                }
+                else if(this.help.ln){
+                    SFX.Text("AVOID",360,260,4,0,d);
+                } 
+                else if(!this.plr.shots && this.help.c && this.help.c.enabled){                        
+                    SFX.Text("COLLECT ROCKS",360,260,4,0,d);
+                }                 
+                else if(this.plr.shots && this.help.f){
+                    SFX.Text("THROW     [SPACE]",360,260,4,0,d);
+                }                     
+                
             }
 
             if(this.boss){
-                SFX.Text(BOSSES[this.level][1], 520, 4, 3, 0, "#fff");  
+                SFX.Text(b[0]+" "+b[1], 520, 4, 3, 0, "#fff");  
                 SFX.Box(402,4,
                     Util.Remap(0,this.boss.max, 0,100, this.boss.damage)
                     ,15, '#F00'); 
 
                 if(this.boss.hatP){
-                    SFX.Text("GET " + BOSSES[this.level][1]+"`S CROWN", 120, 140, 4, 0, "#000"); 
+                    SFX.Text("GET CROWN", 120, 140, 4, 0, d); 
                 }
             }
         }
         else if(this.gameMode == C.GAMEMODE.TITLE){
-            SFX.Sprite(this.iT.x, this.iT.y, 
+            SFX.Sprite(this.iT.p.x, this.iT.p.y, 
                 SPRITES.Get(this.iT.src, 0), this.iT.sz, this.iT.r);
 
-            SFX.Text("THE",280,80,6,1); 
-            SFX.Text("GREATEST KNIGHT",140,124,6,1); 
-            SFX.Text("TO HAVE",240,168,6,1); 
-            SFX.Text("EVER LIVED",240,212,6,1); 
-            if(this.iT.lv || this.iT.sz > 16){ 
-                SFX.Text("FIRE TO START",300,280,4);  
-            }
-        }else if(this.gameMode == C.GAMEMODE.LEVELEND){
-            if(this.level == 0){
-                if(this.plr.enabled){
-                    SFX.Text("YOU HAVE PASSED THE TEST",100,100,4,1); 
-                    SFX.Text("GO FORTH AND CONQUER",100,140,4,1); 
-                    SFX.Text("BRAVE KNIGHT",100,180,4,1); 
-                }
-                else{
-                    SFX.Text("YOU FAILED MISERABLY",100,100,4,1); 
-                    SFX.Text("GO FORTH UNPREPARED",100,140,4,1); 
-                    SFX.Text("NOT SO BRAVE KNIGHT",100,180,4,1);
-                }
-            }
-            else{
-                SFX.Text("YOU HAVE DEFEATED " + BOSSES[this.level][1],100,100,4,1); 
-                SFX.Text("YOU HAVE TRAVELLED " + (this.score+this.lvlScore) +" YDS" ,100,140,4,1); 
-                SFX.Text("ONWARD GOOD KNIGHT" ,100,180,4,1); 
-            }
-            
-        }else if(this.gameMode == C.GAMEMODE.GAMEOVER){
-            SFX.Text("THY GAME IS OVER",120,100,6,1);   
+            // var pt = this.iT.p.CloneAdd({x:0,y:10});
+            // pt.rotate(this.iT.p, this.plr.G);
+            // SFX.Sprite(pt.x, pt.y, 
+            //      SPRITES.Get('legs', 0), this.iT.sz, this.iT.r);    
 
-            SFX.Text("YOU HAVE TRAVELLED " + (this.score+this.lvlScore) +" YDS" ,100,140,4,1); 
+            SFX.Text("GO FORTH",300,100,8,1,g); 
+            SFX.Text("AND",400,160,6,1,g); 
+            SFX.Text("CONQUER",310,212,8,1,g); 
+            if(this.iT.lv || this.iT.sz > 16){ 
+                SFX.Text("[SPACE] TO START",360,280,4,0,d);  
+            }
+        }else if(this.gameMode == C.GAMEMODE.LEVELEND){            
+            SFX.Text(""+ b[2] + " " + b[1] + " IS " + (this.rnd==0?"SLAIN":"DEFEATED") ,60,100,5,1,g); 
+            SFX.Text("YOU ARE NOW " + b[2],180,140,5,1,g); 
+            SFX.Text("YOU HAVE TRAVELLED " + (this.score+this.lvlScore) +" YDS" ,140,190,4,1,g); 
+            SFX.Text("ONWARD " + b[2]+" TONY" ,190,230,5,1,g); 
+        
+        }else if(this.gameMode == C.GAMEMODE.GAMEOVER){
+            SFX.Text("THY GAME IS OVER",140,100,6,1,g);   
+
+            SFX.Text("YOU HAVE TRAVELLED " + (this.score+this.lvlScore) +" YDS" ,130,200,4,1,d); 
             if(this.level>1)
             {
-                SFX.Text("YOU HAVE DEFEATED " + (this.level-1) + " KNIGHTS",100,180,4,1); 
+                SFX.Text("YOU HAVE CONQUERED " + (this.level-1) + " KINGDOMS",100,240,4,1,d); 
+                SFX.Text(""+BOSSES[this.level-1][2]+" OF THE REALM",170,145,5,1,g); 
             }
         }
-
-        Input.Render();
+        else if (this.gameMode == C.GAMEMODE.KING){
+            SFX.Text("BEHOLD KING TONY",140,100,6,1,g);  
+        }
     }
 }
