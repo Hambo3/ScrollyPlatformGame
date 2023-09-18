@@ -1,0 +1,83 @@
+1
+The theme for this years js13k has just been announced.
+13th Century
+I'm uninspired. Not sure what I was hoping or expecting but not this. 
+All I can think of right now is bows and arrows.
+
+4
+Still not sure of anything. Haven't started coding, nor do I have an idea.
+
+I have had a recent interest in the classic platformer Manic Miner. Mainly because I think there is hardly any code in there.
+Move left, right, jump. Fall too far you die. 
+Touch this tile to end the level, this tile kills you, this one you can collect, this tile you can stand on.
+Even the enemies. Move until you reach a trigger and turn around, repeat.
+Thats it, the game lies in its excelent level design.
+I love this concept.
+
+I also love 2d physics engines. The likes of angry birds fascinates me watching towers of blocks falling the way they do. Am I weird?
+
+A game that writes itself is something I'm interested in and might work well for js13k. No code!
+
+I had been playing around with Xem's mini2Dphysics prior to the competition. It's nice and simple and pretty compact.
+I had the idea of a physics platformer. Get from A to B in a phsyics designed level any way you can, topling towers, moving blocks about to form a path to the end.
+Can I do this for this years compo. Big ask?
+
+5
+I'd been working on this. My proof of concept for my physics platformer. Its been stalled due to the big problem in my plan. The levels. Designing levels to make this a game is 
+too daunting and probably beyond me.
+
+However!
+Showing a few people, someone suggested a infinite runner where your constantly having to outrun a collapsing terrain falling behind you.
+The falling terrain thing Im not sure I can implement but how about just falling blocks and a destructable random continuous terrain?
+
+6
+Ive reused my usual toolkit of modules I usually use and my map manager that I use to create a tiled scrollable, zoomable map with a camera to follow the player saves the day again.
+No need for a map here, so I just create a large 2d array of 0's and sprinkle it randomly with 1's where platforms should go.
+I then render a static rigidbody in its place and have my guy running along the map like a good un.
+Added blocks falling from the sky randomly following the player. Its crazy and chaotic as the blocks bounce of each other and the player gets bashed about and jumps of the terrain.
+I like it. It not much code wither so far. 
+
+7
+This time Im doing everything. Sfx, Music, mobile support, gamepad support. So I've put all this in first with a music track borrowed from another game from last year, sorry!
+7.5k
+I think I can do it. Need to think about the graphics?
+
+10
+All my sprites are code generated, sort of. No png's. An idea I had been working on seems to be saving me a few bytes. Not much, but with a small spritesheet to test
+I'm thinking the savings will come as the spriteset increases.
+
+I've written an app to turn this:
+[img]
+into this 
+0,2,2,2,2,2,2,0,18,18,18,18,18,18,18,18,19,19,19,19,20,0,0,0,0,19,19,19,20,0,0,0,17,17,17,17,17,22,17,17,17,22,17,17,17,17,17,17,
+2,4,4,4,4,4,4,2,17,17,17,17,17,17,17,17,19,20,20,20,20,21,19,19,19,20,20,20,20,21,19,19,23,23,23,17,22,23,23,23,23,23,23,17,22,23,23,23,
+2,4,4,4,4,4,4,2,17,17,17,17,17,17,17,17,19,20,20,20,20,21,20,20,19,20,20,20,20,21,20,20,23,23,23,24,22,23,23,23,23,23,17,24,22,23,23,23,
+2,4,4,4,4,4,3,2,16,16,16,16,16,16,16,16,19,20,20,20,20,21,20,20,19,20,20,20,20,21,20,20,24,17,17,24,17,17,24,24,17,17,17,24,17,17,24,24,
+2,4,4,4,4,3,3,2,7,7,16,7,7,7,16,7,20,21,21,21,21,21,21,21,20,21,21,21,21,21,21,21,22,22,22,22,22,17,22,23,22,22,17,22,22,23,22,23,
+2,4,3,4,3,3,3,2,7,7,7,7,7,7,7,7,21,19,20,20,20,20,20,20,19,21,20,20,21,19,20,20,22,23,23,23,23,17,23,24,22,23,17,23,23,24,23,24,
+2,3,3,3,3,3,3,2,6,6,6,6,6,6,6,6,19,20,20,20,20,20,20,21,19,20,21,0,19,20,20,21,22,23,23,23,17,23,17,24,22,24,24,24,24,24,24,24,
+0,2,2,2,2,2,2,0,6,6,6,6,6,6,6,6,21,21,21,21,21,21,21,20,21,21,0,0,0,21,21,20,23,24,24,24,24,24,24,24,0,0,0,0,0,0,0,0
+
+and then compress it into this string
+"0|2,6|0|18,8|19,4|20|0,4|19,3|20|0,3|17,5|22|17,3|22|17,6|2|4,6|2|17,8|19|20,4|21|19,3|20,4|21|19,2|23,3|17|22|23,6|17|22|23,3|2|4,6|2|17,8|19|20,4|21|20,2|19|20,4|21|20,2|23,3|24|22|23,5|17|24|22|23,3|2|4,5|3|2|16,8|19|20,4|21|20,2|19|20,4|21|20,2|24|17,2|24|17,2|24,2|17,3|24|17,2|24,2|2|4,4|3,2|2|7,2|16|7,3|16|7|20|21,7|20|21,7|22,5|17|22|23|22,2|17|22,2|23|22|23|2|4|3|4|3,3|2|7,8|21|19|20,6|19|21|20,2|21|19|20,2|22|23,4|17|23|24|22|23|17|23,2|24|23|24|2|3,6|2|6,8|19|20,6|21|19|20|21|0|19|20,2|21|22|23,3|17|23|17|24|22|24,7|0|2,6|0|6,8|21,7|20|21,2|0,3|21,2|20|23|24,7|0,8"
+
+Unpack it and regenerate as a spriteshaeet canvas.
+
+The original array is compacted into | separated chunks. Each chunk contains the tile id and the count, so 2,2,2,2,2,2 becomes 2,6. Where there is only 1 of them then we just need the id, no need for a count (to save bytes)
+There are better compaction routines I'm sure but this will suffice.
+
+The png is 316 bytes and come code to load it. The compacted string is 583 chars not including the unpack and spritesheet generation code.
+Looks like a waste of effort until I minify it and roadroller it. 
+I'm 100 bytes better off! I can only assume roadroller can pack this code where the png is packed as much as it can get.
+
+I'm not going to worry about it. Its smaller, not much but its smaller and I'm thinking the savings will be expenential as the sprites grow in number.
+Im also gaining some post processing as I can create multiple copies of each sheet as I generate them, of different sizes so I can have an 8x8 and a 16x16 for free.
+
+Onward!
+
+14
+
+
+
+
+

@@ -304,7 +304,7 @@ class Blocky{//TBA
             [-2,2, -2,-2, 2,-2, 2,2],
             [-12,-4, 12,-4, -8,4],
             [-14,-1, 0,-4, 12,0, -10,4],
-            [0,-16, 16,16, -16,16]
+            [0,-12, 12,12, -12,12]
         ];
 
         for (var i = 0; i < n; i++) {
@@ -459,7 +459,7 @@ class Blocky{//TBA
                         var p = new Vector2(Util.RndI(MAP.Pos.l+100, MAP.Pos.r-100),
                                 Util.RndI(this.plr.C.y-200, this.plr.C.y-400));
                         
-                        this.ParticleGen(p, {t:[3],col:[5,27,12,18]}, 16);
+                        this.ParticleGen(p, {t:[3],col:[27,28]}, 16);
                     }
                 }
 
